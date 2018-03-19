@@ -41,21 +41,34 @@ def combine_overlapping_rectangles(source_list: List[Rectangle]) -> List[Rectang
     result_list = list()
     # 遍历源队列
     while len(source_queue) != 0:
+        # 取出队首
         current: Rectangle = source_queue.popleft()
+        # 暂存队列
         temp_queue = deque()
+        # 是否存在重叠
         overlapping: bool = False
+        # 遍历余下队列
         while len(source_queue) != 0:
+            # 暂存矩形
             temp_r: Rectangle = source_queue.popleft()
+            # 判断是否与current重叠
             if current.overlapping(temp_r):
+                # 若重叠，则置overlapping为True
                 overlapping = True
+                # 原地合并temp_r到current
                 current.merge_in_place(temp_r)
             else:
+                # 若不重叠，加入暂存队列
                 temp_queue.append(temp_r)
         if overlapping:
+            # 若在此次遍历中发生重叠，将current加入暂存队列
             temp_queue.appendleft(current)
         else:
+            # 若无重叠，则表示current已经合并完成，加入结果队列
             result_list.append(current)
+        # 将暂存队列拷贝至源队列
         source_queue = temp_queue.copy()
+        # 清空暂存队列
         temp_queue.clear()
     return result_list
 
@@ -65,5 +78,5 @@ if __name__ == '__main__':
     image = cv2.imread('../tests/hello_world_hand_writen.jpg', cv2.IMREAD_REDUCED_COLOR_2)
     # 降噪
     denoising = cv2.fastNlMeansDenoising(image)
+    # 获取边界矩形列表
     bounding_rectangles = get_bounding_rectangles(denoising)
-    print(len(bounding_rectangles))
