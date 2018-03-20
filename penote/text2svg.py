@@ -14,7 +14,7 @@ def get_bounding_rectangles(source: np.ndarray) -> List[Rectangle]:
     :return: 边界矩形列表
     """
     # 反相
-    inverted_grayscale = 255 - cv2.cvtColor(source, cv2.COLOR_BGR2GRAY)
+    inverted_grayscale = 255 - source
     # 二值化
     _, binary = cv2.threshold(inverted_grayscale, 180, 255, cv2.THRESH_OTSU)
     # 彩色的二值化图像，便于绘制有色矩形
@@ -76,8 +76,8 @@ def combine_overlapping_rectangles(source_list: List[Rectangle]) -> List[Rectang
 
 if __name__ == '__main__':
     # 灰度图像
-    image = cv2.imread('../tests/hello_world_hand_writen.jpg', cv2.IMREAD_REDUCED_COLOR_2)
+    grayscale = cv2.imread('../tests/hello_world_hand_writen.jpg', cv2.IMREAD_REDUCED_GRAYSCALE_2)
     # 降噪
-    denoising = cv2.fastNlMeansDenoising(image)
+    denoising = cv2.fastNlMeansDenoising(grayscale)
     # 获取边界矩形列表
     bounding_rectangles = get_bounding_rectangles(denoising)
