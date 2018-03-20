@@ -12,9 +12,9 @@ class Rectangle:
         """
         根据最大纵坐标排序
         :param other: 另外的矩形实例
-        :return: 若最大纵坐标较小，则返回True，否则返回False
+        :return: 若纵坐标较小，则返回True，否则返回False
         """
-        return self.y + self.h < other.y + other.h
+        return self.y < other.y
 
     def __repr__(self):
         return '%d, %d, %d, %d' % (self.x, self.y, self.w, self.h)
