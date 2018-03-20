@@ -1,8 +1,10 @@
+from collections import deque
+from typing import List
+
 import cv2
 import numpy as np
-from typing import List
+
 from penote.rectangle import Rectangle
-from collections import deque
 
 
 def get_bounding_rectangles(source: np.ndarray) -> List[Rectangle]:
@@ -15,14 +17,15 @@ def get_bounding_rectangles(source: np.ndarray) -> List[Rectangle]:
     inverted_grayscale = 255 - cv2.cvtColor(source, cv2.COLOR_BGR2GRAY)
     # 二值化
     _, binary = cv2.threshold(inverted_grayscale, 180, 255, cv2.THRESH_OTSU)
+    # 彩色的二值化图像，便于绘制有色矩形
     binary_rgb = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
     # 轮廓
     _, contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    # 返回矩形列表
-    rectangles = list(Rectangle(*cv2.boundingRect(c)) for c in contours)
-    rectangles = combine_overlapping_rectangles(rectangles)
+    # 合并重叠的矩形后返回列表
+    rectangles = combine_overlapping_rectangles(list(Rectangle(*cv2.boundingRect(c)) for c in contours))
     for r in rectangles:
         cv2.rectangle(binary_rgb, (r.x, r.y), (r.x + r.w, r.y + r.h), (0, 0, 255), 1)
+        cv2.putText(binary_rgb, str(r), (r.x, r.y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 1)
     cv2.imwrite("../tests/hello_world_hand_writen_with_bounding_rectangles.jpg", binary_rgb)
     return rectangles
 
@@ -31,10 +34,8 @@ def combine_overlapping_rectangles(source_list: List[Rectangle]) -> List[Rectang
     """
     合并重叠的矩形
     :param source_list: 输入矩形列表
-    :return: 合并相交的矩形后的矩形列表
+    :return: 合并后的矩形列表
     """
-    # 以矩形的最大纵坐标值排序
-    source_list.sort()
     # 源队列
     source_queue = deque(source_list)
     # 结果列表
