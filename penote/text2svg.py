@@ -102,6 +102,7 @@ def rowing(rectangles: List[Rectangle], shape: Tuple[int, int]) -> List[List[Rec
     # 遍历结果列表，以x位置排序
     for l in result_list:
         l.sort(key=Rectangle.x_position)
+        # l.sort(key=lambda a: a.x)
     # 返回
     return result_list
 
