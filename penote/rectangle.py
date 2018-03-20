@@ -8,14 +8,6 @@ class Rectangle:
         self.w = w
         self.h = h
 
-    def __lt__(self, other):
-        """
-        根据最大纵坐标排序
-        :param other: 另外的矩形实例
-        :return: 若纵坐标较小，则返回True，否则返回False
-        """
-        return self.y < other.y
-
     def __repr__(self):
         return '%d, %d, %d, %d' % (self.x, self.y, self.w, self.h)
 
@@ -25,6 +17,14 @@ class Rectangle:
                self.y == other.y and \
                self.w == other.w and \
                self.h == other.h
+
+    @staticmethod
+    def x_position(cls):
+        return cls.x
+
+    @staticmethod
+    def y_position(cls):
+        return cls.y
 
     def points(self):
         """
