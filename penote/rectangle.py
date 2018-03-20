@@ -9,7 +9,7 @@ class Rectangle:
         self.h = h
 
     def __repr__(self):
-        return '%d, %d, %d, %d' % (self.x, self.y, self.w, self.h)
+        return '%d,%d,%d,%d' % (self.x, self.y, self.w, self.h)
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \
@@ -84,10 +84,9 @@ class Rectangle:
                                   other.x <= self.x + self.w <= other.x + other.w)
         overlapping = vertical_overlapping and horizontal_overlapping
         # 绘图
-        # image = np.zeros(506 * 506 * 3, dtype=np.uint8).reshape((506, 506, 3))
-        # cv2.rectangle(image, (self.x, self.y), (self.x + self.w, self.y + self.h), (0, 0, 255), 1)
-        # cv2.rectangle(image, (other.x, other.y), (other.x + other.w, other.y + other.h), (0, 255, 0), 1)
+        # image = np.zeros(968 * 974, dtype=np.uint8).reshape((968, 974))
+        # cv2.rectangle(image, (self.x, self.y), (self.x + self.w, self.y + self.h), 255, 1)
+        # cv2.rectangle(image, (other.x, other.y), (other.x + other.w, other.y + other.h), 255, 1)
         # cv2.imshow(str(overlapping) + str(time.time()), image)
         # cv2.waitKey()
-        # cv2.destroyAllWindows()
         return overlapping
