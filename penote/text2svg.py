@@ -65,7 +65,7 @@ def combine_overlapping_rectangles(source_list: List[Rectangle]) -> List[Rectang
             # 若在此次遍历中发生重叠，将current加入暂存队列
             temp_queue.appendleft(current)
         else:
-            # 若无重叠，则表示current已经合并完成，加入结果队列
+            # 若无重叠，则表示current已经合并完成，加入结果列表
             result_list.append(current)
         # 将暂存队列拷贝至源队列
         source_queue = temp_queue.copy()
