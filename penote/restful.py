@@ -1,12 +1,26 @@
-from flask import Flask, jsonify
+from flask import Flask
+from flask_restful import Api, Resource, marshal_with, fields
+from penote.rectangle import Rectangle
 
 app = Flask(__name__)
+api = Api(app)
 
 
-@app.route('/')
-def hello_world():
-    return jsonify({'hello': 'world'})
+rectangle_fields = {
+    'x': fields.Integer,
+    'y': fields.Integer,
+    'w': fields.Integer,
+    'h': fields.Integer
+}
 
+
+class Rectangles(Resource):
+    @marshal_with(rectangle_fields)
+    def get(self):
+        return Rectangle(1, 2, 3, 4)
+
+
+api.add_resource(Rectangles, '/')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=False)
