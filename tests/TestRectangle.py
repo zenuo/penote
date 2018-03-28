@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 
 from penote import text2svg
-from penote.rectangle import Rectangle
+from penote.klass import Rectangle
 
 
 class MyTestCase(unittest.TestCase):

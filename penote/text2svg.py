@@ -1,37 +1,51 @@
+import logging
+import os
 import statistics
+import subprocess
+import uuid
 from collections import deque
-from typing import List
 
 import cv2
 import numpy as np
 
-from penote.rectangle import Rectangle
+from penote import config
+from penote.klass import Rectangle
+
+# 将bmp文件转为svg的命令
+CMD_BMP2SVG = 'potrace %s -s -i -o %s'
+logging.getLogger(__name__)
 
 
-def bounding_rectangles(source: np.ndarray):
+def bounding_rectangles(source):
     """
     返回边界矩形列表
     :param source: 原图
-    :return: 二值化图像，边界矩形列表
+    :return: 边界点列表，边界矩形列表
     """
     # 反相
     inverted_grayscale = 255 - source
     # 二值化
     _, binary = cv2.threshold(inverted_grayscale, 180, 255, cv2.THRESH_OTSU)
     # 彩色的二值化图像，便于绘制有色矩形
-    binary_rgb = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
-    # 轮廓
-    _, contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    binary_rgb = np.zeros(source.shape)
+    # 所有轮廓
+    _, all_contours, _ = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # 合并重叠的矩形后返回列表
-    rectangles = combine_overlapping_rectangles(list(Rectangle(*cv2.boundingRect(c)) for c in contours))
-    for r in rectangles:
-        cv2.rectangle(binary_rgb, (r.x, r.y), (r.x + r.w, r.y + r.h), (0, 0, 255), 1)
-        cv2.putText(binary_rgb, str(r), (r.x, r.y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 1)
-    cv2.imwrite("../tests/spring_dawn_with_bounding_rectangles.jpg", binary_rgb)
-    return binary, rectangles
+    rectangles = combine_overlapping_rectangles(list(Rectangle(*cv2.boundingRect(c), c) for c in all_contours))
+    # for r in rectangles:
+    #     绘制边界矩形
+    #     cv2.rectangle(binary_rgb, (r.x, r.y), (r.x + r.w, r.y + r.h), (0, 0, 255), 1)
+    #     简化近似轮廓
+    #     smoothed_contours = list(cv2.approxPolyDP(c, 0.005 * cv2.arcLength(c, True), True) for c in r.cl)
+    #     print("未处理的轮廓点数：%d\n平滑处理后的轮廓点数：%d" % (count_points(r.cl), count_points(smoothed_contours)))
+    #     绘制轮廓
+    # cv2.drawContours(binary_rgb, r.cl, -1, (255, 255, 255), 1)
+    #     cv2.putText(binary_rgb, str(r), (r.x, r.y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 1)
+    # cv2.imwrite("../tests/field_with_contours.jpg", binary_rgb)
+    return binary, rectangles, all_contours
 
 
-def combine_overlapping_rectangles(source_list: List[Rectangle]) -> List[Rectangle]:
+def combine_overlapping_rectangles(source_list):
     """
     合并重叠的矩形
     :param source_list: 输入矩形列表
@@ -45,15 +59,15 @@ def combine_overlapping_rectangles(source_list: List[Rectangle]) -> List[Rectang
     # 遍历源队列
     while len(source_queue) != 0:
         # 取出队首
-        current: Rectangle = source_queue.popleft()
+        current = source_queue.popleft()
         # 暂存队列
         temp_queue = deque()
         # 是否存在重叠
-        overlapping: bool = False
+        overlapping = False
         # 遍历余下队列
         while len(source_queue) != 0:
             # 暂存矩形
-            temp_r: Rectangle = source_queue.popleft()
+            temp_r = source_queue.popleft()
             # 判断是否与current重叠
             if current.overlapping(temp_r):
                 # 若重叠，则置overlapping为True
@@ -77,7 +91,7 @@ def combine_overlapping_rectangles(source_list: List[Rectangle]) -> List[Rectang
     return result_list
 
 
-def horizontal_blank_lines(binary: np.ndarray) -> List[int]:
+def horizontal_blank_lines(binary):
     """
     获取所有水平的空白线的纵坐标，对相邻的空白线集合取其中值
     :param binary: 二值化图像
@@ -111,7 +125,7 @@ def horizontal_blank_lines(binary: np.ndarray) -> List[int]:
         return result_list
 
 
-def rowing(rectangles: List[Rectangle], lines: List[int]) -> List[List[Rectangle]]:
+def rowing(rectangles, lines):
     """
     将矩形列表分行，返回二维列表，模拟其在文本上的位置
     :param rectangles: 输入矩形列表
@@ -146,20 +160,24 @@ def rowing(rectangles: List[Rectangle], lines: List[int]) -> List[List[Rectangle
     return result_list
 
 
-if __name__ == '__main__':
+def main():
+    # 获取配置
+    config_json = config.get()
     # 灰度图像
     grayscale: np.ndarray = cv2.imread(
-        '/home/yuanzhen/project/penote/tests/spring_dawn.jpg',
-        cv2.IMREAD_REDUCED_GRAYSCALE_2
+        '/home/yuanzhen/project/penote/tests/listen.jpg',
+        cv2.IMREAD_GRAYSCALE
     )
     # 降噪
     denoising: np.ndarray = cv2.fastNlMeansDenoising(grayscale)
     # 获取二值化图像和边界矩形列表
-    binary, rectangles = bounding_rectangles(denoising)
+    binary, rectangles, contours = bounding_rectangles(denoising)
     # 水平空白行列表
     blank_lines = horizontal_blank_lines(binary)
     # 分行
     rows = rowing(rectangles, blank_lines)
+    # UUID
+    uuid_str = str(uuid.uuid4())
     # 行和列
     row_count = 1
     column_count = 1
@@ -168,11 +186,22 @@ if __name__ == '__main__':
         for rect in row:
             # 切片以获得文字的位图
             character = binary[rect.y - 1:rect.y + rect.h + 1, rect.x - 1:rect.x + rect.w + 1]
-            cv2.imwrite("/tmp/%d_%d.jpg" % (row_count, column_count), character)
+            # bmp文件路径
+            bmp_path = '%s%s%s_%d_%d.bmp' % (config_json['temp_path'], os.sep, uuid_str, row_count, column_count)
+            # svg文件路径
+            svg_path = '%s%s%s_%d_%d.svg' % (config_json['svg_path'], os.sep, uuid_str, row_count, column_count)
+            # 将bmp文件写入暂存
+            cv2.imwrite(bmp_path, character)
+            # 转换bmp到svg
+            cmd = (CMD_BMP2SVG % (bmp_path, svg_path)).split()
+            subprocess.call(cmd)
             # 增加列计数
             column_count += 1
         # 增加列计数
         row_count += 1
         # 重置列计数
         column_count = 1
-    cv2.waitKey()
+
+
+if __name__ == '__main__':
+    main()
