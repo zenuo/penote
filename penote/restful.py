@@ -1,10 +1,10 @@
 from flask import Flask
 from flask_restful import Api, Resource, marshal_with, fields
-from penote.rectangle import Rectangle
+
+from penote.klass import Rectangle
 
 app = Flask(__name__)
 api = Api(app)
-
 
 rectangle_fields = {
     'x': fields.Integer,
