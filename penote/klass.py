@@ -1,12 +1,13 @@
-from typing import Tuple
-
-
 class Rectangle:
-    def __init__(self, x=0, y=0, w=0, h=0):
+    def __init__(self, x=0, y=0, w=0, h=0, c=None):
         self.x = x
         self.y = y
         self.w = w
         self.h = h
+        # 轮廓列表
+        self.cl = []
+        if c is not None:
+            self.cl.append(c)
 
     def __repr__(self):
         return '%d,%d,%d,%d' % (self.x, self.y, self.w, self.h)
@@ -19,12 +20,12 @@ class Rectangle:
                self.h == other.h
 
     @staticmethod
-    def x_position(cls):
-        return cls.x
+    def x_position(o):
+        return o.x
 
     @staticmethod
-    def y_position(cls):
-        return cls.y
+    def y_position(o):
+        return o.y
 
     def points(self):
         """
@@ -36,7 +37,7 @@ class Rectangle:
                (self.x + self.w, self.y), \
                (self.x + self.w, self.y + self.h)
 
-    def point_in(self, p: Tuple[int, int]):
+    def point_in(self, p):
         """
         判断某个点是否在本矩形内，包含边界
         :param p: 需要判断的点
@@ -61,6 +62,7 @@ class Rectangle:
         # 高度
         merged.h = max(self.y + self.h, other.y + other.h) - merged.y
         # 更新到self
+        self.cl.extend(other.cl)
         self.x = merged.x
         self.y = merged.y
         self.w = merged.w
