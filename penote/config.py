@@ -1,6 +1,7 @@
 import logging
 import logging.config
 import os.path
+
 import yaml
 
 
@@ -27,11 +28,11 @@ def get():
     return __config_json
 
 
-def setup_logging(default_path='./logging.yaml', default_level=logging.INFO):
+def setup_logging(default_path='logging.yaml', default_level=logging.INFO):
     """
     配置日志
     """
-    log_file_directory_path = '../logs'
+    log_file_directory_path = '..%slogs' % os.sep
     # 若日志目录不存在，则创建
     if not os.path.exists(log_file_directory_path):
         os.mkdir(log_file_directory_path)
