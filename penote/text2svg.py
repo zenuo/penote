@@ -13,7 +13,8 @@ from penote.klass import Rectangle
 
 # 将bmp文件转为svg的命令
 CMD_BMP2SVG = 'potrace %s -s -i -o %s'
-logging.getLogger(__name__)
+# 日志
+logger = logging.getLogger(__name__)
 
 
 def bounding_rectangles(source):
@@ -27,7 +28,7 @@ def bounding_rectangles(source):
     # 二值化
     _, binary = cv2.threshold(inverted_grayscale, 180, 255, cv2.THRESH_OTSU)
     # 彩色的二值化图像，便于绘制有色矩形
-    binary_rgb = np.zeros(source.shape)
+    # binary_rgb = np.zeros(source.shape)
     # 所有轮廓
     _, all_contours, _ = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # 合并重叠的矩形后返回列表
@@ -42,7 +43,7 @@ def bounding_rectangles(source):
     # cv2.drawContours(binary_rgb, r.cl, -1, (255, 255, 255), 1)
     #     cv2.putText(binary_rgb, str(r), (r.x, r.y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 1)
     # cv2.imwrite("../tests/field_with_contours.jpg", binary_rgb)
-    return binary, rectangles, all_contours
+    return binary, rectangles
 
 
 def combine_overlapping_rectangles(source_list):
@@ -171,7 +172,7 @@ def main():
     # 降噪
     denoising: np.ndarray = cv2.fastNlMeansDenoising(grayscale)
     # 获取二值化图像和边界矩形列表
-    binary, rectangles, contours = bounding_rectangles(denoising)
+    binary, rectangles = bounding_rectangles(denoising)
     # 水平空白行列表
     blank_lines = horizontal_blank_lines(binary)
     # 分行
