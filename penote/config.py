@@ -21,10 +21,10 @@ def get():
             with open(config_file_path, 'rt') as config_file:
                 __config_json = yaml.safe_load(config_file.read())
                 logger.info('Config loaded: %s' % str(__config_json))
-    else:
-        # 报错并退出
-        logger.error('Config file not found')
-        exit(1)
+        else:
+            # 报错并退出
+            logger.error('Config file not found')
+            exit(1)
     return __config_json
 
 
