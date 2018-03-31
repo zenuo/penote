@@ -3,3 +3,4 @@ opencv-python
 flask
 flask-restful
 yaml
+sqlalchemy

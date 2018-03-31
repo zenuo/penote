@@ -1,3 +1,80 @@
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
+from sqlalchemy.ext.declarative import declarative
+from sqlalchemy.orm import relationship
+
+# base declarative class
+Base = declarative()
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(String(36), primary_key=True)
+    name = Column(String(50))
+    email = Column(String(100))
+    bio = Column(String(2000))
+    is_deleted = Column(Integer)
+    created = Column(DateTime)
+    updated = Column(DateTime)
+    # binding
+    posts = relationship('Post', order_by=Post.updated, back_populates='user')
+
+
+class Post(Base):
+    __tablename__ = 'posts'
+
+    id = Column(String(36), primary_key=True)
+    user_id = Column(String(36), ForeignKey('users.id'))
+    title = Column(String(200))
+    category_id = Column(String(36), ForeignKey('categories.id'))
+    is_deleted = Column(Integer)
+    created = Column(DateTime)
+    updated = Column(DateTime)
+    # binding
+    user = relationship('User', back_populates='posts')
+    paragraphs = relationship('Paragraph', back_populates='post')
+    category = relationship('Category', back_populates='posts')
+
+
+class Paragraph(Base):
+    __tablename__ = 'paragraphs'
+
+    id = Column(String(36), primary_key=True)
+    post_id = Column(String(36), ForeignKey('posts.id'))
+    index = Column(Integer)
+    is_deleted = Column(Integer)
+    created = Column(DateTime)
+    updated = Column(DateTime)
+    # binding
+    post = relationship('Post', back_populates='paragraphs')
+    characters = relationship('Character', back_populates='paragraph')
+
+
+class Character(Base):
+    __tablename__ = 'characters'
+
+    id = Column(String(36), primary_key=True)
+    paragraph_id = Column(String(36), ForeignKey('paragraphs.id'))
+    index = Column(Integer)
+    is_deleted = Column(Integer)
+    created = Column(DateTime)
+    updated = Column(DateTime)
+    # binding
+    paragraph = relationship('Paragraph', back_populates='characters')
+
+
+class Category(Base):
+    __tablename__ = 'catogories'
+
+    id = Column(String(36), primary_key=True)
+    user_id = Column(String(36), ForeignKey('user.id'))
+    name = Column(String(50))
+    is_deleted = Column(Integer)
+    created = Column(DateTime)
+    updated = Column(DateTime)
+    # binding
+    posts = relationship('Post', back_populates='category')
+
 class Rectangle:
     __slots__ = ['x', 'y', 'w', 'h', 'cl']
 

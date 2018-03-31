@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 
-from penote import text2svg
+from penote import photo2svg
 from penote.klass import Rectangle
 
 
@@ -49,7 +49,7 @@ class MyTestCase(unittest.TestCase):
              [0, 0, 1],
              [0, 0, 0]],
             dtype=np.uint8)
-        lines = text2svg.horizontal_blank_lines(a)
+        lines = photo2svg.horizontal_blank_lines(a)
         self.assertEqual(lines, list([1, 3]))
 
 

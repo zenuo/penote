@@ -15,6 +15,8 @@ from penote.klass import Rectangle
 CMD_BMP2SVG = 'potrace %s -s -i -o %s'
 # 日志
 logger = logging.getLogger(__name__)
+# 获取配置
+config_json = config.get()
 
 
 def bounding_rectangles(source):
@@ -161,12 +163,11 @@ def rowing(rectangles, lines):
     return result_list
 
 
-def main():
-    # 获取配置
-    config_json = config.get()
+def jpg2svg(photo_path):
+    logger.info('jpg2svg: %s', photo_path)
     # 灰度图像
     grayscale: np.ndarray = cv2.imread(
-        '/home/yuanzhen/project/penote/tests/listen.jpg',
+        photo_path,
         cv2.IMREAD_GRAYSCALE
     )
     # 降噪
@@ -202,7 +203,8 @@ def main():
         row_count += 1
         # 重置列计数
         column_count = 1
+    logger.info('photo "%s" to %s, %d rows and %d columns', photo_path, uuid_str, row_count, column_count)
 
 
 if __name__ == '__main__':
-    main()
+    jpg2svg('/home/yuanzhen/project/penote/tests/listen.jpg')
