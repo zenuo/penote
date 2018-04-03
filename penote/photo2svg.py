@@ -14,9 +14,9 @@ from penote.klass import Rectangle
 # 将bmp文件转为svg的命令
 CMD_BMP2SVG = 'potrace %s -s -i -o %s'
 # 日志
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 # 获取配置
-config_json = config.get()
+CONFIG_JSON = config.get()
 
 
 def bounding_rectangles(source):
@@ -32,9 +32,11 @@ def bounding_rectangles(source):
     # 彩色的二值化图像，便于绘制有色矩形
     # binary_rgb = np.zeros(source.shape)
     # 所有轮廓
-    _, all_contours, _ = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    _, all_contours, _ = cv2.findContours(
+        binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # 合并重叠的矩形后返回列表
-    rectangles = combine_overlapping_rectangles(list(Rectangle(*cv2.boundingRect(c), c) for c in all_contours))
+    rectangles = combine_overlapping_rectangles(
+        list(Rectangle(*cv2.boundingRect(c), c) for c in all_contours))
     # for r in rectangles:
     #     绘制边界矩形
     #     cv2.rectangle(binary_rgb, (r.x, r.y), (r.x + r.w, r.y + r.h), (0, 0, 255), 1)
@@ -60,7 +62,7 @@ def combine_overlapping_rectangles(source_list):
     # 结果列表
     result_list = list()
     # 遍历源队列
-    while len(source_queue) != 0:
+    while not source_queue:
         # 取出队首
         current = source_queue.popleft()
         # 暂存队列
@@ -68,7 +70,7 @@ def combine_overlapping_rectangles(source_list):
         # 是否存在重叠
         overlapping = False
         # 遍历余下队列
-        while len(source_queue) != 0:
+        while not source_queue:
             # 暂存矩形
             temp_r = source_queue.popleft()
             # 判断是否与current重叠
@@ -103,9 +105,9 @@ def horizontal_blank_lines(binary):
     # 高度
     height = binary.shape[0]
     # 结果列表
-    result_list = list()
+    result_list = []
     # 暂存列表
-    temp_list = list()
+    temp_list = []
     # 遍历每一行像素
     for i in range(height):
         # 取一行像素
@@ -114,7 +116,7 @@ def horizontal_blank_lines(binary):
         if not line.any():
             temp_list.append(i)
         # 若此行不为空白且暂存列表不为空
-        elif len(temp_list) != 0:
+        elif not temp_list:
             # 求中值并添加到结果列表
             result_list.append(int(statistics.median(temp_list)))
             # 清空暂存列表
@@ -142,11 +144,11 @@ def rowing(rectangles, lines):
     temp_list = list()
     # 遍历矩形列表
     for l in lines:
-        while len(source_queue) != 0:
+        while not source_queue:
             r: Rectangle = source_queue.popleft()
             if r.y + r.h < l:
                 temp_list.append(r)
-            elif len(temp_list) != 0:
+            elif not temp_list:
                 result_list.append(temp_list.copy())
                 temp_list.clear()
                 temp_list.append(r)
@@ -164,7 +166,7 @@ def rowing(rectangles, lines):
 
 
 def jpg2svg(photo_path):
-    logger.info('jpg2svg: %s', photo_path)
+    LOGGER.info('jpg2svg: %s', photo_path)
     # 灰度图像
     grayscale: np.ndarray = cv2.imread(
         photo_path,
@@ -187,11 +189,14 @@ def jpg2svg(photo_path):
     for row in rows:
         for rect in row:
             # 切片以获得文字的位图
-            character = binary[rect.y - 1:rect.y + rect.h + 1, rect.x - 1:rect.x + rect.w + 1]
+            character = binary[rect.y - 1:rect.y +
+                               rect.h + 1, rect.x - 1:rect.x + rect.w + 1]
             # bmp文件路径
-            bmp_path = '%s%s%s_%d_%d.bmp' % (config_json['temp_path'], os.sep, uuid_str, row_count, column_count)
+            bmp_path = '%s%s%s_%d_%d.bmp' % (
+                CONFIG_JSON['temp_path'], os.sep, uuid_str, row_count, column_count)
             # svg文件路径
-            svg_path = '%s%s%s_%d_%d.svg' % (config_json['svg_path'], os.sep, uuid_str, row_count, column_count)
+            svg_path = '%s%s%s_%d_%d.svg' % (
+                CONFIG_JSON['svg_path'], os.sep, uuid_str, row_count, column_count)
             # 将bmp文件写入暂存
             cv2.imwrite(bmp_path, character)
             # 转换bmp到svg
@@ -203,7 +208,13 @@ def jpg2svg(photo_path):
         row_count += 1
         # 重置列计数
         column_count = 1
-    logger.info('photo "%s" to %s, %d rows and %d columns', photo_path, uuid_str, row_count, column_count)
+    LOGGER.info(
+        'photo "%s" to %s, %d rows and %d columns',
+        photo_path,
+        uuid_str,
+        row_count,
+        column_count
+    )
 
 
 if __name__ == '__main__':

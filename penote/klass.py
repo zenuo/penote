@@ -6,20 +6,6 @@ from sqlalchemy.orm import relationship
 Base = declarative_base()
 
 
-class User(Base):
-    __tablename__ = 'users'
-
-    id = Column(String(36), primary_key=True)
-    name = Column(String(50))
-    email = Column(String(100))
-    bio = Column(String(2000))
-    is_deleted = Column(Integer)
-    created = Column(DateTime)
-    updated = Column(DateTime)
-    # binding
-    posts = relationship('Post', order_by=Post.updated, back_populates='user')
-
-
 class Post(Base):
     __tablename__ = 'posts'
 
@@ -34,6 +20,20 @@ class Post(Base):
     user = relationship('User', back_populates='posts')
     paragraphs = relationship('Paragraph', back_populates='post')
     category = relationship('Category', back_populates='posts')
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(String(36), primary_key=True)
+    name = Column(String(50))
+    email = Column(String(100))
+    bio = Column(String(2000))
+    is_deleted = Column(Integer)
+    created = Column(DateTime)
+    updated = Column(DateTime)
+    # binding
+    posts = relationship('Post', order_by=Post.updated, back_populates='user')
 
 
 class Paragraph(Base):
@@ -75,6 +75,7 @@ class Category(Base):
     # binding
     posts = relationship('Post', back_populates='category')
 
+
 class Rectangle:
     __slots__ = ['x', 'y', 'w', 'h', 'cl']
 
@@ -93,10 +94,10 @@ class Rectangle:
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \
-               self.x == other.x and \
-               self.y == other.y and \
-               self.w == other.w and \
-               self.h == other.h
+            self.x == other.x and \
+            self.y == other.y and \
+            self.w == other.w and \
+            self.h == other.h
 
     @staticmethod
     def x_position(o):
@@ -155,14 +156,14 @@ class Rectangle:
         """
         # 纵向重叠
         vertical_overlapping = self.y <= other.y <= self.y + self.h or \
-                               self.y <= other.y + other.h <= self.y + self.h or \
-                               (other.y <= self.y <= other.y + other.h and
-                                other.y <= self.y + self.h <= other.y + other.h)
+            self.y <= other.y + other.h <= self.y + self.h or \
+            (other.y <= self.y <= other.y + other.h and
+             other.y <= self.y + self.h <= other.y + other.h)
         # 横向重叠
         horizontal_overlapping = self.x <= other.x <= self.x + self.w or \
-                                 self.x <= other.x + other.w <= self.x + self.w or \
-                                 (other.x <= self.x <= other.x + other.w and
-                                  other.x <= self.x + self.w <= other.x + other.w)
+            self.x <= other.x + other.w <= self.x + self.w or \
+            (other.x <= self.x <= other.x + other.w and
+             other.x <= self.x + self.w <= other.x + other.w)
         overlapping = vertical_overlapping and horizontal_overlapping
         # 绘图
         # image = np.zeros(968 * 974, dtype=np.uint8).reshape((968, 974))
