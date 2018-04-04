@@ -11,13 +11,6 @@ import numpy as np
 from penote import config
 from penote.klass import Rectangle
 
-# 将bmp文件转为svg的命令
-CMD_BMP2SVG = 'potrace %s -s -i -o %s'
-# 日志
-LOGGER = logging.getLogger(__name__)
-# 获取配置
-CONFIG_JSON = config.get()
-
 
 def bounding_rectangles(source):
     """
@@ -32,11 +25,9 @@ def bounding_rectangles(source):
     # 彩色的二值化图像，便于绘制有色矩形
     # binary_rgb = np.zeros(source.shape)
     # 所有轮廓
-    _, all_contours, _ = cv2.findContours(
-        binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    _, all_contours, _ = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # 合并重叠的矩形后返回列表
-    rectangles = combine_overlapping_rectangles(
-        list(Rectangle(*cv2.boundingRect(c), c) for c in all_contours))
+    rectangles = combine_overlapping_rectangles(list(Rectangle(*cv2.boundingRect(c), c) for c in all_contours))
     # for r in rectangles:
     #     绘制边界矩形
     #     cv2.rectangle(binary_rgb, (r.x, r.y), (r.x + r.w, r.y + r.h), (0, 0, 255), 1)
@@ -56,13 +47,13 @@ def combine_overlapping_rectangles(source_list):
     :param source_list: 输入矩形列表
     :return: 合并后的矩形列表
     """
-    source_list.sort(key=Rectangle.y_position)
+    source_list.sort(key=lambda a: a.y)
     # 源队列
     source_queue = deque(source_list)
     # 结果列表
     result_list = list()
     # 遍历源队列
-    while not source_queue:
+    while source_queue:
         # 取出队首
         current = source_queue.popleft()
         # 暂存队列
@@ -70,7 +61,7 @@ def combine_overlapping_rectangles(source_list):
         # 是否存在重叠
         overlapping = False
         # 遍历余下队列
-        while not source_queue:
+        while source_queue:
             # 暂存矩形
             temp_r = source_queue.popleft()
             # 判断是否与current重叠
@@ -105,9 +96,9 @@ def horizontal_blank_lines(binary):
     # 高度
     height = binary.shape[0]
     # 结果列表
-    result_list = []
+    result_list = list()
     # 暂存列表
-    temp_list = []
+    temp_list = list()
     # 遍历每一行像素
     for i in range(height):
         # 取一行像素
@@ -116,7 +107,7 @@ def horizontal_blank_lines(binary):
         if not line.any():
             temp_list.append(i)
         # 若此行不为空白且暂存列表不为空
-        elif not temp_list:
+        elif temp_list:
             # 求中值并添加到结果列表
             result_list.append(int(statistics.median(temp_list)))
             # 清空暂存列表
@@ -144,11 +135,11 @@ def rowing(rectangles, lines):
     temp_list = list()
     # 遍历矩形列表
     for l in lines:
-        while not source_queue:
+        while source_queue:
             r: Rectangle = source_queue.popleft()
             if r.y + r.h < l:
                 temp_list.append(r)
-            elif not temp_list:
+            elif temp_list:
                 result_list.append(temp_list.copy())
                 temp_list.clear()
                 temp_list.append(r)
@@ -159,19 +150,30 @@ def rowing(rectangles, lines):
     result_list.append(temp_list)
     # 遍历结果列表，以x位置排序
     for l in result_list:
-        l.sort(key=Rectangle.x_position)
-        # l.sort(key=lambda a: a.x)
+        l.sort(key=lambda a: a.x)
     # 返回
     return result_list
 
 
-def jpg2svg(photo_path):
-    LOGGER.info('jpg2svg: %s', photo_path)
+def check_directories(dir):
+    """
+    检查文件夹
+    :param dir:
+    :return:
+    """
+    if not os.path.exists(dir):
+        os.mkdir(dir)
+        LOGGER.info("create directory: %s", dir)
+
+
+def photo2svg(photo_path):
+    """
+    照片转SVG
+    :param photo_path: 照片文件的路径
+    :return: None
+    """
     # 灰度图像
-    grayscale: np.ndarray = cv2.imread(
-        photo_path,
-        cv2.IMREAD_GRAYSCALE
-    )
+    grayscale: np.ndarray = cv2.imread(photo_path,cv2.IMREAD_GRAYSCALE)
     # 降噪
     denoising: np.ndarray = cv2.fastNlMeansDenoising(grayscale)
     # 获取二值化图像和边界矩形列表
@@ -189,33 +191,34 @@ def jpg2svg(photo_path):
     for row in rows:
         for rect in row:
             # 切片以获得文字的位图
-            character = binary[rect.y - 1:rect.y +
-                               rect.h + 1, rect.x - 1:rect.x + rect.w + 1]
+            character = binary[rect.y - 1:rect.y + rect.h + 1, rect.x - 1:rect.x + rect.w + 1]
             # bmp文件路径
-            bmp_path = '%s%s%s_%d_%d.bmp' % (
-                CONFIG_JSON['temp_path'], os.sep, uuid_str, row_count, column_count)
+            bmp_path = '%s%s%s_%d_%d.bmp' % (CONFIG_JSON['temp_path'], os.sep, uuid_str, row_count, column_count)
             # svg文件路径
-            svg_path = '%s%s%s_%d_%d.svg' % (
-                CONFIG_JSON['svg_path'], os.sep, uuid_str, row_count, column_count)
+            svg_path = '%s%s%s_%d_%d.svg' % (CONFIG_JSON['svg_path'], os.sep, uuid_str, row_count, column_count)
             # 将bmp文件写入暂存
             cv2.imwrite(bmp_path, character)
             # 转换bmp到svg
             cmd = (CMD_BMP2SVG % (bmp_path, svg_path)).split()
-            subprocess.call(cmd)
+            ret = subprocess.call(cmd)
+            print(ret)
             # 增加列计数
             column_count += 1
         # 增加列计数
         row_count += 1
         # 重置列计数
         column_count = 1
-    LOGGER.info(
-        'photo "%s" to %s, %d rows and %d columns',
-        photo_path,
-        uuid_str,
-        row_count,
-        column_count
-    )
+    LOGGER.info('photo "%s" to %s, %d rows and %d columns', photo_path, uuid_str, row_count, column_count)
 
+
+# 将bmp文件转为svg的命令
+CMD_BMP2SVG = 'potrace %s -s -i -o %s'
+# 日志
+LOGGER = logging.getLogger(__name__)
+# 获取配置
+CONFIG_JSON = config.get()
+check_directories(CONFIG_JSON['temp_path'])
+check_directories(CONFIG_JSON['svg_path'])
 
 if __name__ == '__main__':
-    jpg2svg('/home/yuanzhen/project/penote/tests/listen.jpg')
+    photo2svg('/home/yuanzhen/project/penote/tests/listen.jpg')

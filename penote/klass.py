@@ -3,10 +3,11 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 # base declarative class
-Base = declarative_base()
+BASE = declarative_base()
 
 
-class Post(Base):
+class Post(BASE):
+    """文章"""
     __tablename__ = 'posts'
 
     id = Column(String(36), primary_key=True)
@@ -22,7 +23,8 @@ class Post(Base):
     category = relationship('Category', back_populates='posts')
 
 
-class User(Base):
+class User(BASE):
+    """用户"""
     __tablename__ = 'users'
 
     id = Column(String(36), primary_key=True)
@@ -36,7 +38,8 @@ class User(Base):
     posts = relationship('Post', order_by=Post.updated, back_populates='user')
 
 
-class Paragraph(Base):
+class Paragraph(BASE):
+    """段落"""
     __tablename__ = 'paragraphs'
 
     id = Column(String(36), primary_key=True)
@@ -50,7 +53,8 @@ class Paragraph(Base):
     characters = relationship('Character', back_populates='paragraph')
 
 
-class Character(Base):
+class Character(BASE):
+    """字符"""
     __tablename__ = 'characters'
 
     id = Column(String(36), primary_key=True)
@@ -63,7 +67,8 @@ class Character(Base):
     paragraph = relationship('Paragraph', back_populates='characters')
 
 
-class Category(Base):
+class Category(BASE):
+    """分类"""
     __tablename__ = 'catogories'
 
     id = Column(String(36), primary_key=True)
@@ -77,6 +82,7 @@ class Category(Base):
 
 
 class Rectangle:
+    """矩形"""
     __slots__ = ['x', 'y', 'w', 'h', 'cl']
 
     def __init__(self, x=0, y=0, w=0, h=0, c=None):
