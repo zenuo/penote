@@ -32,7 +32,7 @@ def setup_logging(default_path='logging.yaml', default_level=logging.INFO):
     """
     配置日志
     """
-    log_file_directory_path = '..%slogs' % os.sep
+    log_file_directory_path = '../logs'
     # 若日志目录不存在，则创建
     if not os.path.exists(log_file_directory_path):
         os.mkdir(log_file_directory_path)

@@ -193,9 +193,9 @@ def photo2svg(photo_path):
             # 切片以获得文字的位图
             character = binary[rect.y - 1:rect.y + rect.h + 1, rect.x - 1:rect.x + rect.w + 1]
             # bmp文件路径
-            bmp_path = '%s%s%s_%d_%d.bmp' % (CONFIG_JSON['temp_path'], os.sep, uuid_str, row_count, column_count)
+            bmp_path = '%s/%s_%d_%d.bmp' % (CONFIG_JSON['temp_path'], uuid_str, row_count, column_count)
             # svg文件路径
-            svg_path = '%s%s%s_%d_%d.svg' % (CONFIG_JSON['svg_path'], os.sep, uuid_str, row_count, column_count)
+            svg_path = '%s/%s_%d_%d.svg' % (CONFIG_JSON['svg_path'], uuid_str, row_count, column_count)
             # 将bmp文件写入暂存
             cv2.imwrite(bmp_path, character)
             # 转换bmp到svg
