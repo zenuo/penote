@@ -20,10 +20,10 @@ def get():
             # 打开并读取配置文件
             with open(config_file_path, 'rt') as config_file:
                 __config_json = yaml.safe_load(config_file.read())
-                logger.info('Config loaded: %s' % str(__config_json))
+                LOGGER.info('Config loaded: %s' % str(__config_json))
         else:
             # 报错并退出
-            logger.error('Config file not found')
+            LOGGER.error('Config file not found')
             exit(1)
     return __config_json
 
@@ -49,8 +49,8 @@ def setup_logging(default_path='logging.yaml', default_level=logging.INFO):
 __config_json = None
 # 日志
 setup_logging()
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 # 切换工作路径
 path_of_file = os.path.dirname(os.path.abspath(__file__))
 os.chdir(path_of_file)
-logging.info('Changed the current working directory to %s', path_of_file)
+LOGGER.info('Changed the current working directory to %s', path_of_file)

@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
+import datetime
 
 # base declarative class
 BASE = declarative_base()
@@ -14,9 +15,9 @@ class Post(BASE):
     user_id = Column(String(36), ForeignKey('users.id'))
     title = Column(String(200))
     category_id = Column(String(36), ForeignKey('categories.id'))
-    is_deleted = Column(Integer)
-    created = Column(DateTime)
-    updated = Column(DateTime)
+    is_deleted = Column(Integer, default=0)
+    created = Column(DateTime, default=datetime.datetime.now())
+    updated = Column(DateTime, default=datetime.datetime.now())
     # binding
     user = relationship('User', back_populates='posts')
     paragraphs = relationship('Paragraph', back_populates='post')
@@ -31,9 +32,9 @@ class User(BASE):
     name = Column(String(50))
     email = Column(String(100))
     bio = Column(String(2000))
-    is_deleted = Column(Integer)
-    created = Column(DateTime)
-    updated = Column(DateTime)
+    is_deleted = Column(Integer, default=0)
+    created = Column(DateTime, default=datetime.datetime.now())
+    updated = Column(DateTime, default=datetime.datetime.now())
     # binding
     posts = relationship('Post', order_by=Post.updated, back_populates='user')
 
@@ -44,10 +45,10 @@ class Paragraph(BASE):
 
     id = Column(String(36), primary_key=True)
     post_id = Column(String(36), ForeignKey('posts.id'))
-    index = Column(Integer)
-    is_deleted = Column(Integer)
-    created = Column(DateTime)
-    updated = Column(DateTime)
+    index_number = Column(Integer)
+    is_deleted = Column(Integer, default=0)
+    created = Column(DateTime, default=datetime.datetime.now())
+    updated = Column(DateTime, default=datetime.datetime.now())
     # binding
     post = relationship('Post', back_populates='paragraphs')
     characters = relationship('Character', back_populates='paragraph')
@@ -59,24 +60,24 @@ class Character(BASE):
 
     id = Column(String(36), primary_key=True)
     paragraph_id = Column(String(36), ForeignKey('paragraphs.id'))
-    index = Column(Integer)
-    is_deleted = Column(Integer)
-    created = Column(DateTime)
-    updated = Column(DateTime)
+    index_number = Column(Integer)
+    is_deleted = Column(Integer, default=0)
+    created = Column(DateTime, default=datetime.datetime.now())
+    updated = Column(DateTime, default=datetime.datetime.now())
     # binding
     paragraph = relationship('Paragraph', back_populates='characters')
 
 
 class Category(BASE):
     """分类"""
-    __tablename__ = 'catogories'
+    __tablename__ = 'categories'
 
     id = Column(String(36), primary_key=True)
-    user_id = Column(String(36), ForeignKey('user.id'))
+    user_id = Column(String(36), ForeignKey('users.id'))
     name = Column(String(50))
-    is_deleted = Column(Integer)
-    created = Column(DateTime)
-    updated = Column(DateTime)
+    is_deleted = Column(Integer, default=0)
+    created = Column(DateTime, default=datetime.datetime.now())
+    updated = Column(DateTime, default=datetime.datetime.now())
     # binding
     posts = relationship('Post', back_populates='category')
 
@@ -100,10 +101,10 @@ class Rectangle:
 
     def __eq__(self, other):
         return isinstance(other, self.__class__) and \
-            self.x == other.x and \
-            self.y == other.y and \
-            self.w == other.w and \
-            self.h == other.h
+               self.x == other.x and \
+               self.y == other.y and \
+               self.w == other.w and \
+               self.h == other.h
 
     @staticmethod
     def x_position(o):
@@ -162,14 +163,14 @@ class Rectangle:
         """
         # 纵向重叠
         vertical_overlapping = self.y <= other.y <= self.y + self.h or \
-            self.y <= other.y + other.h <= self.y + self.h or \
-            (other.y <= self.y <= other.y + other.h and
-             other.y <= self.y + self.h <= other.y + other.h)
+                               self.y <= other.y + other.h <= self.y + self.h or \
+                               (other.y <= self.y <= other.y + other.h and
+                                other.y <= self.y + self.h <= other.y + other.h)
         # 横向重叠
         horizontal_overlapping = self.x <= other.x <= self.x + self.w or \
-            self.x <= other.x + other.w <= self.x + self.w or \
-            (other.x <= self.x <= other.x + other.w and
-             other.x <= self.x + self.w <= other.x + other.w)
+                                 self.x <= other.x + other.w <= self.x + self.w or \
+                                 (other.x <= self.x <= other.x + other.w and
+                                  other.x <= self.x + self.w <= other.x + other.w)
         overlapping = vertical_overlapping and horizontal_overlapping
         # 绘图
         # image = np.zeros(968 * 974, dtype=np.uint8).reshape((968, 974))

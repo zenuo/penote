@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_restful import Api, Resource, marshal_with, fields
 
-from penote.klass import Rectangle
+from penote.entity import Rectangle
 
 app = Flask(__name__)
 api = Api(app)
@@ -20,6 +20,8 @@ class Rectangles(Resource):
         return Rectangle(1, 2, 3, 4)
 
 
+# class Posts(Resource):
+#     @marshal_with()
 api.add_resource(Rectangles, '/')
 
 if __name__ == '__main__':

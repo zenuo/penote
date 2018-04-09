@@ -9,7 +9,8 @@ import cv2
 import numpy as np
 
 from penote import config
-from penote.klass import Rectangle
+from penote.data import SESSION
+from penote.entity import Rectangle, Paragraph, Character
 
 
 def bounding_rectangles(source):
@@ -166,10 +167,11 @@ def check_directories(dir):
         LOGGER.info("create directory: %s", dir)
 
 
-def photo2svg(photo_path):
+def photo2svg(photo_path, post_id):
     """
     照片转SVG
     :param photo_path: 照片文件的路径
+    :param post_id: 文章ID
     :return: None
     """
     # 灰度图像
@@ -182,33 +184,48 @@ def photo2svg(photo_path):
     blank_lines = horizontal_blank_lines(binary)
     # 分行
     rows = rowing(rectangles, blank_lines)
-    # UUID
-    uuid_str = str(uuid.uuid4())
-    # 行和列
-    row_count = 1
-    column_count = 1
+    # 段落ID
+    paragraph_id = str(uuid.uuid4())
+    # 创建段落实例
+    paragraph = Paragraph(
+        id=paragraph_id,
+        post_id=post_id,
+        index_number=0
+    )
+    SESSION.add(paragraph)
+    # 计数
+    count = 0
+    # 文字列表
+    character_list = []
     # 遍历
     for row in rows:
         for rect in row:
-            # 切片以获得文字的位图
-            character = binary[rect.y - 1:rect.y + rect.h + 1, rect.x - 1:rect.x + rect.w + 1]
+            # 文字ID
+            character_id = str(uuid.uuid4())
+            # 文字实例
+            character = Character(
+                id=character_id,
+                paragraph_id=paragraph_id,
+                index_number=count,
+                is_deleted=0
+            )
+            character_list.append(character)
+            # 切片，四个方向各扩大一像素
+            character_slice = binary[rect.y - 1:rect.y + rect.h + 1, rect.x - 1:rect.x + rect.w + 1]
             # bmp文件路径
-            bmp_path = '%s/%s_%d_%d.bmp' % (CONFIG_JSON['temp_path'], uuid_str, row_count, column_count)
+            bmp_path = '%s/%s.bmp' % (CONFIG_JSON['temp_path'], character_id)
             # svg文件路径
-            svg_path = '%s/%s_%d_%d.svg' % (CONFIG_JSON['svg_path'], uuid_str, row_count, column_count)
+            svg_path = '%s/%s.svg' % (CONFIG_JSON['svg_path'], character_id)
             # 将bmp文件写入暂存
-            cv2.imwrite(bmp_path, character)
+            cv2.imwrite(bmp_path, character_slice)
             # 转换bmp到svg
             cmd = (CMD_BMP2SVG % (bmp_path, svg_path)).split()
             ret = subprocess.call(cmd)
-            print(ret)
+            # LOGGER.info()
             # 增加列计数
-            column_count += 1
-        # 增加列计数
-        row_count += 1
-        # 重置列计数
-        column_count = 1
-    LOGGER.info('photo "%s" to %s, %d rows and %d columns', photo_path, uuid_str, row_count, column_count)
+            count += 1
+    SESSION.add_all(character_list)
+    SESSION.commit()
 
 
 # 将bmp文件转为svg的命令
@@ -221,4 +238,4 @@ check_directories(CONFIG_JSON['temp_path'])
 check_directories(CONFIG_JSON['svg_path'])
 
 if __name__ == '__main__':
-    photo2svg('/home/yuanzhen/project/penote/tests/listen.jpg')
+    photo2svg('/home/yuanzhen/project/penote/tests/spring_dawn.jpg', str(uuid.uuid4()))
