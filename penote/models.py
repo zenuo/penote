@@ -8,6 +8,15 @@ from sqlalchemy.orm import relationship
 BASE = declarative_base()
 
 
+class Session(BASE):
+    __tablename__ = 'sessions'
+    id = Column(String(36), primary_key=True)
+    user_id = Column(String(36), ForeignKey('users.id'))
+    is_deleted = Column(Integer, default=0)
+    created = Column(DateTime, default=datetime.datetime.now())
+    updated = Column(DateTime, default=datetime.datetime.now())
+
+
 class Post(BASE):
     """文章"""
     __tablename__ = 'posts'
@@ -33,6 +42,7 @@ class User(BASE):
     name = Column(String(50))
     email = Column(String(100))
     bio = Column(String(2000))
+    password_hash = Column(String(128))
     is_deleted = Column(Integer, default=0)
     created = Column(DateTime, default=datetime.datetime.now())
     updated = Column(DateTime, default=datetime.datetime.now())

@@ -1,28 +1,34 @@
-from flask import Flask
+from flask import Flask, request
 from flask_restful import Api, Resource, marshal_with, fields
 
-from penote.entity import Rectangle
-
-app = Flask(__name__)
-api = Api(app)
-
-rectangle_fields = {
-    'x': fields.Integer,
-    'y': fields.Integer,
-    'w': fields.Integer,
-    'h': fields.Integer
-}
+from penote.service import user
 
 
-class Rectangles(Resource):
-    @marshal_with(rectangle_fields)
+class Welcome(Resource):
     def get(self):
-        return Rectangle(1, 2, 3, 4)
+        return 'Welcome to penote api, :-)'
 
 
-# class Posts(Resource):
-#     @marshal_with()
-api.add_resource(Rectangles, '/')
+class Users(Resource):
+    user_fields = {
+        'id': fields.String,
+        'name': fields.String,
+        'email': fields.String,
+        'bio': fields.String,
+        'created': fields.DateTime(dt_format='iso8601'),
+        'updated': fields.DateTime(dt_format='iso8601')
+    }
+
+    @marshal_with(user_fields)
+    def post(self):
+        json = request.get_json(force=True)
+        return user.create(json)
+
+
+__APP = Flask(__name__)
+__API = Api(__APP, default_mediatype='application/json; charset=utf-8')
+__API.add_resource(Welcome, '/')
+__API.add_resource(Users, '/users')
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    __APP.run(debug=False)
