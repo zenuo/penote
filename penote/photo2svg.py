@@ -166,11 +166,12 @@ def check_directories(dir):
         LOGGER.info("create directory: %s", dir)
 
 
-def photo2svg(photo_path, post_id):
+def photo2svg(photo_path, post_id, session):
     """
     照片转SVG
     :param photo_path: 照片文件的路径
     :param post_id: 文章ID
+    :param session: 会话实例
     :return: None
     """
     # 灰度图像
@@ -183,8 +184,6 @@ def photo2svg(photo_path, post_id):
     blank_lines = horizontal_blank_lines(binary)
     # 分行
     rows = rowing(rectangles, blank_lines)
-    # 创建会话实例
-    session = SESSION_MAKER()
     # 段落ID
     paragraph_id = str(uuid.uuid4())
     # 创建段落实例
@@ -207,8 +206,7 @@ def photo2svg(photo_path, post_id):
             character = Character(
                 id=character_id,
                 paragraph_id=paragraph_id,
-                index_number=count,
-                is_deleted=0
+                index_number=count
             )
             character_list.append(character)
             # 切片，四个方向各扩大一像素
@@ -228,7 +226,6 @@ def photo2svg(photo_path, post_id):
             # 增加列计数
             count += 1
     session.add_all(character_list)
-    session.commit()
 
 
 # 将bmp文件转为svg的命令
@@ -241,4 +238,8 @@ check_directories(CONFIG_JSON['bmp_path'])
 check_directories(CONFIG_JSON['svg_path'])
 
 if __name__ == '__main__':
-    photo2svg('/home/yuanzhen/project/penote/tests/spring_dawn.jpg', str(uuid.uuid4()))
+    # 创建会话实例
+    session = SESSION_MAKER()
+    photo2svg('/home/yuanzhen/project/penote/tests/spring_dawn.jpg', str(uuid.uuid4()), session)
+    session.commit()
+    session.close()
