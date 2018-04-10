@@ -1,12 +1,22 @@
+import logging
+
 from flask import Flask, request
-from flask_restful import Api, Resource, marshal_with, fields
+from flask_restful import Api, Resource, marshal_with, fields, reqparse
 
 from penote.service import user
+
+# 日志
+LOGGER = logging.getLogger(__name__)
+__APP = Flask(__name__)
+__API = Api(__APP, default_mediatype='application/json; charset=utf-8')
+PARSER = reqparse.RequestParser()
+PARSER.add_argument('id')
+PARSER.add_argument('session')
 
 
 class Welcome(Resource):
     def get(self):
-        return 'Welcome to penote api, :-)'
+        return 'Welcome to penote API'
 
 
 class Users(Resource):
@@ -24,9 +34,13 @@ class Users(Resource):
         json = request.get_json(force=True)
         return user.create(json)
 
+    def delete(self):
+        args = PARSER.parse_args()
+        id = args['id']
+        session = args['session']
+        return user.invalidate(id, session)
 
-__APP = Flask(__name__)
-__API = Api(__APP, default_mediatype='application/json; charset=utf-8')
+
 __API.add_resource(Welcome, '/')
 __API.add_resource(Users, '/users')
 
