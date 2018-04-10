@@ -10,7 +10,7 @@ import numpy as np
 
 from penote import config
 from penote.data import SESSION_MAKER
-from penote.entity import Rectangle, Paragraph, Character
+from penote.models import Rectangle, Paragraph, Character
 
 
 def bounding_rectangles(source):
