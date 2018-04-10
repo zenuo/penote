@@ -10,22 +10,22 @@ def get():
     加载配置文件
     :return: 配置字典
     """
-    global __config_json
+    global __CONFIG
     # 若__config_json为None，加载文件
-    if __config_json is None:
+    if __CONFIG is None:
         # 配置文件路径
         config_file_path = 'config.yaml'
         # 若配置文件存在
         if os.path.exists(config_file_path):
             # 打开并读取配置文件
             with open(config_file_path, 'rt') as config_file:
-                __config_json = yaml.safe_load(config_file.read())
-                LOGGER.info('Config loaded: %s' % str(__config_json))
+                __CONFIG = yaml.safe_load(config_file.read())
+                LOGGER.info('Config loaded: %s' % str(__CONFIG))
         else:
             # 报错并退出
             LOGGER.error('Config file not found')
             exit(1)
-    return __config_json
+    return __CONFIG
 
 
 def setup_logging(default_path='logging.yaml', default_level=logging.INFO):
@@ -46,7 +46,7 @@ def setup_logging(default_path='logging.yaml', default_level=logging.INFO):
 
 
 # 配置字典
-__config_json = None
+__CONFIG = None
 # 日志
 # setup_logging()
 LOGGER = logging.getLogger(__name__)
