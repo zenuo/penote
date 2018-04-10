@@ -1,12 +1,12 @@
 import unittest
 
 import numpy as np
-from penote.klass import Rectangle
 
 from penote import utils
+from penote.models import Rectangle
 
 
-class MyTestCase(unittest.TestCase):
+class RectangleTestCase(unittest.TestCase):
     def test_overlapping(self):
         r1 = Rectangle(30, 20, 30, 50)
         r2 = Rectangle(50, 50, 30, 40)
