@@ -61,8 +61,8 @@ def exists_by_id(id, is_deleted):
 
 
 def invalidate(id, session):
-    # if not is_valid(session):
-    # abort(403, error='无权限，请登录')
+    if not session.is_valid(session):
+        abort(403, error='无权限，请登录')
     if exists_by_id(id, 0):
         sess = SESSION_MAKER()
         try:
@@ -78,8 +78,8 @@ def invalidate(id, session):
 
 
 def validate(id, session):
-    # if not is_valid(session):
-    # abort(403, error='无权限，请登录')
+    if not session.is_valid(session):
+        abort(403, error='无权限，请登录')
     if exists_by_id(id, 1):
         sess = SESSION_MAKER()
         try:
