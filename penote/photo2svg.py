@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 
 from penote import config
-from penote.data import SESSION
+from penote.data import SESSION_MAKER
 from penote.entity import Rectangle, Paragraph, Character
 
 
@@ -158,12 +158,11 @@ def rowing(rectangles, lines):
 
 def check_directories(dir):
     """
-    检查文件夹
-    :param dir:
-    :return:
+    若文件夹dir不存在，则创建，否则不创建
+    :param dir: 需要检测的文件夹
     """
     if not os.path.exists(dir):
-        os.mkdir(dir)
+        os.makedirs(dir)
         LOGGER.info("create directory: %s", dir)
 
 
@@ -175,7 +174,7 @@ def photo2svg(photo_path, post_id):
     :return: None
     """
     # 灰度图像
-    grayscale: np.ndarray = cv2.imread(photo_path,cv2.IMREAD_GRAYSCALE)
+    grayscale: np.ndarray = cv2.imread(photo_path, cv2.IMREAD_GRAYSCALE)
     # 降噪
     denoising: np.ndarray = cv2.fastNlMeansDenoising(grayscale)
     # 获取二值化图像和边界矩形列表
@@ -184,6 +183,8 @@ def photo2svg(photo_path, post_id):
     blank_lines = horizontal_blank_lines(binary)
     # 分行
     rows = rowing(rectangles, blank_lines)
+    # 创建会话实例
+    session = SESSION_MAKER()
     # 段落ID
     paragraph_id = str(uuid.uuid4())
     # 创建段落实例
@@ -192,7 +193,7 @@ def photo2svg(photo_path, post_id):
         post_id=post_id,
         index_number=0
     )
-    SESSION.add(paragraph)
+    session.add(paragraph)
     # 计数
     count = 0
     # 文字列表
@@ -213,19 +214,21 @@ def photo2svg(photo_path, post_id):
             # 切片，四个方向各扩大一像素
             character_slice = binary[rect.y - 1:rect.y + rect.h + 1, rect.x - 1:rect.x + rect.w + 1]
             # bmp文件路径
-            bmp_path = '%s/%s.bmp' % (CONFIG_JSON['temp_path'], character_id)
+            bmp_path = '%s/%s.bmp' % (CONFIG_JSON['bmp_path'], character_id)
             # svg文件路径
             svg_path = '%s/%s.svg' % (CONFIG_JSON['svg_path'], character_id)
             # 将bmp文件写入暂存
             cv2.imwrite(bmp_path, character_slice)
             # 转换bmp到svg
             cmd = (CMD_BMP2SVG % (bmp_path, svg_path)).split()
-            ret = subprocess.call(cmd)
-            # LOGGER.info()
+            # 执行bmp转svg，并记录其返回码，判断其是否成功执行
+            ret_code = subprocess.call(cmd)
+            if ret_code != 0:
+                LOGGER.info('Failed to execute "%s"' % cmd)
             # 增加列计数
             count += 1
-    SESSION.add_all(character_list)
-    SESSION.commit()
+    session.add_all(character_list)
+    session.commit()
 
 
 # 将bmp文件转为svg的命令
@@ -234,7 +237,7 @@ CMD_BMP2SVG = 'potrace %s -s -i -o %s'
 LOGGER = logging.getLogger(__name__)
 # 获取配置
 CONFIG_JSON = config.get()
-check_directories(CONFIG_JSON['temp_path'])
+check_directories(CONFIG_JSON['bmp_path'])
 check_directories(CONFIG_JSON['svg_path'])
 
 if __name__ == '__main__':
