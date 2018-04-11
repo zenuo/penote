@@ -7,6 +7,7 @@ from sqlalchemy import func
 
 from ..data import SESSION_MAKER
 from ..models import User
+from ..service import session
 
 # 日志
 LOGGER = logging.getLogger(__name__)
@@ -60,8 +61,8 @@ def exists_by_id(id, is_deleted):
         sess.close()
 
 
-def invalidate(id, session):
-    if not session.is_valid(session):
+def invalidate(id, session_id):
+    if not session.is_valid(session_id):
         abort(403, error='无权限，请登录')
     if exists_by_id(id, 0):
         sess = SESSION_MAKER()
