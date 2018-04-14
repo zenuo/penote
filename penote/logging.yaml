@@ -4,11 +4,6 @@ formatters:
     format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
 handlers:
-  console:
-    class: logging.StreamHandler
-    level: DEBUG
-    formatter: simple
-    stream: ext://sys.stdout
   info_file_handler:
       class: logging.handlers.TimedRotatingFileHandler
       level: INFO
@@ -28,12 +23,6 @@ handlers:
       backupCount: 20
       encoding: utf8
 
-loggers:
-  simpleExample:
-    level: DEBUG
-    handlers: [console]
-    propagate: no
-
 root:
   level: DEBUG
-  handlers: [console, info_file_handler, error_file_handler]
+  handlers: [info_file_handler, error_file_handler]

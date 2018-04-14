@@ -1,5 +1,4 @@
 import logging
-import os
 import statistics
 import subprocess
 import uuid
@@ -156,22 +155,12 @@ def rowing(rectangles, lines):
     return result_list
 
 
-def check_directories(dir):
-    """
-    若文件夹dir不存在，则创建，否则不创建
-    :param dir: 需要检测的文件夹
-    """
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-        LOGGER.info("create directory: %s", dir)
-
-
-def photo2svg(photo_path, post_id, session):
+def photo2svg(photo_path, post_id):
     """
     照片转SVG
     :param photo_path: 照片文件的路径
     :param post_id: 文章ID
-    :param session: 会话实例
+    :param sess: 会话实例
     :return: None
     """
     # 灰度图像
@@ -192,7 +181,6 @@ def photo2svg(photo_path, post_id, session):
         post_id=post_id,
         index_number=0
     )
-    session.add(paragraph)
     # 计数
     count = 0
     # 文字列表
@@ -225,7 +213,17 @@ def photo2svg(photo_path, post_id, session):
                 LOGGER.info('Failed to execute "%s"' % cmd)
             # 增加列计数
             count += 1
-    session.add_all(character_list)
+    # 创建数据库访问会话
+    sess = SESSION_MAKER()
+    try:
+        sess.add(paragraph)
+        sess.add_all(character_list)
+        sess.commit()
+    except Exception as ex:
+        LOGGER.error('图片转SVG异常', ex)
+    finally:
+        sess.close()
+        return paragraph_id
 
 
 # 将bmp文件转为svg的命令
@@ -234,12 +232,8 @@ CMD_BMP2SVG = 'potrace %s -s -i -o %s'
 LOGGER = logging.getLogger(__name__)
 # 获取配置
 CONFIG_JSON = config.get()
-check_directories(CONFIG_JSON['bmp_path'])
-check_directories(CONFIG_JSON['svg_path'])
 
 if __name__ == '__main__':
-    # 创建会话实例
-    session = SESSION_MAKER()
-    photo2svg('/home/yuanzhen/project/penote/tests/spring_dawn.jpg', str(uuid.uuid4()), session)
-    session.commit()
-    session.close()
+    post_id = str(uuid.uuid4())
+    para_id = photo2svg('/home/yuanzhen/project/penote/tests/spring_dawn.jpg', post_id)
+    print(para_id)
