@@ -16,7 +16,7 @@ LOGGER = logging.getLogger(__name__)
 def create(json):
     if {'name', 'email', 'bio', 'password'} != set(json.keys()):
         abort(400, error='信息不完全')
-    exists_same_name = exists_by_name(json['name'])
+    exists_same_name = get_id_by_name(json['name']) is not None
     if exists_same_name:
         abort(400, error='存在同名用户')
     else:
@@ -39,12 +39,12 @@ def create(json):
             sess.close()
 
 
-def exists_by_name(name):
+def get_id_by_name(name):
     sess = SESSION_MAKER()
     try:
-        return sess.query(func.count(User.id)).filter_by(name=name, is_deleted=0).limit(1).scalar() != 0
+        return sess.query(User.id).filter_by(name=name, is_deleted=0).limit(1).scalar()
     except Exception as ex:
-        LOGGER.error('查询是否存在同名用户异常', ex)
+        LOGGER.error('查询是否存在指定用户名用户异常', ex)
         raise ex
     finally:
         sess.close()
@@ -62,6 +62,7 @@ def exists_by_id(id, is_deleted):
 
 
 def invalidate(id, session_id):
+    """删除（禁用）用户"""
     if not session.is_valid(session_id):
         abort(403, error='无权限，请登录')
     if exists_by_id(id, 0):

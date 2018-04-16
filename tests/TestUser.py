@@ -4,8 +4,13 @@ from penote.service import user
 
 
 class UserTestCase(unittest.TestCase):
+
+    def test_create(self):
+        json = {'name': 'hello', 'email': 'hello@m.com', 'bio': 'hello world!', 'password': '123456'}
+        user.create(json)
+
     def test_exists_by_name(self):
-        self.assertTrue(user.exists_by_name('hello'))
+        self.assertTrue(user.get_id_by_name('hello') is None)
 
     def test_exists_by_id(self):
         self.assertTrue(user.exists_by_id('3ccb0d3e-832d-418e-8aae-de75f2d2f208'))

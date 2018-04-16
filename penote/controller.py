@@ -3,23 +3,26 @@ import logging
 from flask import Flask, request
 from flask_restful import Api, Resource, marshal_with, fields, reqparse
 
-from .service import user, post, paragraph, character
+from .service import user, post, paragraph, character, session
 
 # 日志
 LOGGER = logging.getLogger(__name__)
-__APP = Flask(__name__, root_path='/api')
-__API = Api(__APP)
+# Flask应用实例
+__APP = Flask(__name__)
+__API = Api(__APP, prefix='/api')
+# 解析器
 PARSER = reqparse.RequestParser()
 PARSER.add_argument('id', type=str)
 PARSER.add_argument('session', type=str)
-PARSER.add_argument('q', type=str)
+PARSER.add_argument('title', type=str)
 PARSER.add_argument('user', type=str)
 PARSER.add_argument('para', type=str)
 PARSER.add_argument('post', type=str)
 
+
 @__APP.route('/api/', methods=['GET'])
 def root():
-    return 'Welcome to penote API'
+    return 'Welcome to Penote API!'
 
 
 @__APP.route('/api/uploads', methods=['POST'])
@@ -98,10 +101,23 @@ class Characters(Resource):
         return character.get(para)
 
 
-__API.add_resource(Users, '/api/users')
-__API.add_resource(Posts, '/api/posts')
-__API.add_resource(Paragraphs, '/api/paragraphs')
-__API.add_resource(Characters, '/api/characters')
+class Sessions(Resource):
+    def post(self):
+        json = request.get_json(force=True)
+        return session.login(json)
+
+    def delete(self):
+        args = PARSER.parse_args()
+        id = args['id']
+        return session.logout(id)
+
+
+__API.add_resource(Users, '/users')
+__API.add_resource(Posts, '/posts')
+__API.add_resource(Paragraphs, '/paragraphs')
+__API.add_resource(Characters, '/characters')
+__API.add_resource(Sessions, '/sessions')
+
 
 def run():
     __APP.run(debug=False)
