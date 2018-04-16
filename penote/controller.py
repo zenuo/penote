@@ -112,10 +112,15 @@ class Sessions(Resource):
         return session.logout(id)
 
 
+class Categories(Resource):
+    pass
+
+
 __API.add_resource(Users, '/users')
 __API.add_resource(Posts, '/posts')
 __API.add_resource(Paragraphs, '/paragraphs')
 __API.add_resource(Characters, '/characters')
+__API.add_resource(Categories, '/categories')
 __API.add_resource(Sessions, '/sessions')
 
 
