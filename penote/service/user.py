@@ -53,7 +53,7 @@ def get_id_by_name(name):
 def exists_by_id(id, is_deleted):
     sess = SESSION_MAKER()
     try:
-        return sess.query(func.count(User.id)).filter_by(id=id, is_deleted=is_deleted).limit(1).scalar() != 0
+        return sess.query(func.count(User.id)).filter_by(id=id, is_deleted=is_deleted).scalar() != 0
     except Exception as ex:
         LOGGER.error('查询是否存在指定ID用户异常', ex)
         raise ex

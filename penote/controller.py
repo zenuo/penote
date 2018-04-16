@@ -3,7 +3,7 @@ import logging
 from flask import Flask, request
 from flask_restful import Api, Resource, marshal_with, fields, reqparse
 
-from .service import user, post, paragraph, character, session
+from .service import user, post, paragraph, character, session, category
 
 # 日志
 LOGGER = logging.getLogger(__name__)
@@ -113,7 +113,21 @@ class Sessions(Resource):
 
 
 class Categories(Resource):
-    pass
+    category_fileds = {
+        'id': fields.String,
+        'name': fields.String
+    }
+
+    @marshal_with(category_fileds)
+    def get(self):
+        args = PARSER.parse_args()
+        session_id = args['session']
+        return category.get(session_id)
+
+    @marshal_with(category_fileds)
+    def post(self):
+        json = request.get_json(force=True)
+        return category.create(json)
 
 
 __API.add_resource(Users, '/users')

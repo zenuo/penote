@@ -14,16 +14,19 @@ LOGGER = logging.getLogger(__name__)
 
 def is_valid(id):
     """检查会话是否有效"""
-    sess = SESSION_MAKER()
-    try:
-        return sess.query(func.count(Session.id)). \
-                   filter_by(id=id, is_deleted=0). \
-                   limit(1). \
-                   scalar() != 0
-    except Exception as ex:
-        LOGGER.error('验证会话异常', ex)
-    finally:
-        sess.close()
+    if id is None:
+        return False
+    else:
+        sess = SESSION_MAKER()
+        try:
+            return sess.query(func.count(Session.id)). \
+                       filter_by(id=id, is_deleted=0). \
+                       limit(1). \
+                       scalar() != 0
+        except Exception as ex:
+            LOGGER.error('验证会话异常', ex)
+        finally:
+            sess.close()
 
 
 def exists_by_user_name(user_name):
@@ -64,7 +67,7 @@ def invalidate_by_user_name(user_name):
 def login(json):
     """登入"""
     if {'user_name', 'password'} != set(json.keys()):
-        abort(400, error='信息正确')
+        abort(400, error='信息不正确')
     user_name = json['user_name']
     password = json['password']
     # 删除原有效会话
@@ -96,5 +99,19 @@ def logout(id):
         return ret
     except Exception as ex:
         LOGGER.error('登出异常', ex)
+    finally:
+        sess.close()
+
+
+def get_user_id_by_id(session_id):
+    """根据会话ID查询用户ID"""
+    sess = SESSION_MAKER()
+    try:
+        return sess.query(Session.user_id). \
+            filter_by(id=session_id, is_deleted=0). \
+            limit(1). \
+            scalar()
+    except Exception as ex:
+        LOGGER.error('根据会话ID查询用户ID异常', ex)
     finally:
         sess.close()
