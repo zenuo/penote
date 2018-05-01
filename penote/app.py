@@ -1,3 +1,4 @@
+""" 启动模块 """
 import logging
 
 from flask import Flask, request
@@ -21,12 +22,14 @@ PARSER.add_argument('post', type=str)
 
 
 @__APP.route('/api/', methods=['GET'])
-def root():
-    return 'Welcome to Penote API!'
+def hello():
+    """ 欢迎页面 """
+    return 'Welcome to Penote API! https://github.com/zenuo/penote.git\r\n'
 
 
 @__APP.route('/api/uploads', methods=['POST'])
 def upload_file():
+    """ 文件上传 """
     if request.method == 'POST':
         file = request.files['file']
         return post.upload(file)
