@@ -2,5 +2,5 @@ numpy
 opencv-python
 flask
 flask-restful
-yaml
+PyYAML
 sqlalchemy
