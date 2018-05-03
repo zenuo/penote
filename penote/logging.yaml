@@ -17,7 +17,7 @@ handlers:
       class: logging.handlers.TimedRotatingFileHandler
       level: ERROR
       formatter: simple
-      filename: ../logs/errors.log
+      filename: ../logs/error.log
       interval: 1
       when: D
       backupCount: 20
