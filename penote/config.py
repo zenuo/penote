@@ -15,7 +15,7 @@ def __check_directories(dir):
         LOGGER.info("create directory: %s", dir)
 
 
-def get():
+def get_config():
     """
     加载配置文件
     :return: 配置字典
@@ -36,7 +36,7 @@ def get():
                 __check_directories(__CONFIG['source_image_path'])
         else:
             # 报错并退出
-            LOGGER.error('Config file not found')
+            LOGGER.error('未找到配置文件')
             exit(1)
     return __CONFIG
 

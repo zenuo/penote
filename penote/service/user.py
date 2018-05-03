@@ -61,24 +61,6 @@ def exists_by_id(id, is_deleted):
         sess.close()
 
 
-def invalidate(id, session_id):
-    """删除（禁用）用户"""
-    if not session.is_valid(session_id):
-        abort(403, error='无权限，请登录')
-    if exists_by_id(id, 0):
-        sess = SESSION_MAKER()
-        try:
-            sess.query(User).filter_by(id=id, is_deleted=0).update({'is_deleted': 1})
-            sess.commit()
-        except Exception as ex:
-            LOGGER.error('禁用用户异常', ex)
-            raise ex
-        finally:
-            sess.close()
-    else:
-        abort(404, error='不存在指定用户')
-
-
 def validate(id, session):
     if not session.is_valid(session):
         abort(403, error='无权限，请登录')

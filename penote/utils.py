@@ -7,9 +7,9 @@ from collections import deque
 import cv2
 import numpy as np
 
-from penote import config
-from penote.data import SESSION_MAKER
-from penote.models import Rectangle, Paragraph, Character
+from .config import get_config
+from .data import SESSION_MAKER
+from .models import Character, Paragraph, Rectangle
 
 
 def bounding_rectangles(source):
@@ -25,9 +25,11 @@ def bounding_rectangles(source):
     # 彩色的二值化图像，便于绘制有色矩形
     # binary_rgb = np.zeros(source.shape)
     # 所有轮廓
-    _, all_contours, _ = cv2.findContours(binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    _, all_contours, _ = cv2.findContours(
+        binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # 合并重叠的矩形后返回列表
-    rectangles = combine_overlapping_rectangles(list(Rectangle(*cv2.boundingRect(c), c) for c in all_contours))
+    rectangles = combine_overlapping_rectangles(
+        list(Rectangle(*cv2.boundingRect(c), c) for c in all_contours))
     # for r in rectangles:
     #     绘制边界矩形
     #     cv2.rectangle(binary_rgb, (r.x, r.y), (r.x + r.w, r.y + r.h), (0, 0, 255), 1)
@@ -198,7 +200,8 @@ def photo2svg(photo_path, post_id):
             )
             character_list.append(character)
             # 切片，四个方向各扩大一像素
-            character_slice = binary[rect.y - 1:rect.y + rect.h + 1, rect.x - 1:rect.x + rect.w + 1]
+            character_slice = binary[rect.y - 1:rect.y +
+                                     rect.h + 1, rect.x - 1:rect.x + rect.w + 1]
             # bmp文件路径
             bmp_path = '%s/%s.bmp' % (CONFIG_JSON['bmp_path'], character_id)
             # svg文件路径
@@ -210,7 +213,7 @@ def photo2svg(photo_path, post_id):
             # 执行bmp转svg，并记录其返回码，判断其是否成功执行
             ret_code = subprocess.call(cmd)
             if ret_code != 0:
-                LOGGER.info('Failed to execute "%s"' % cmd)
+                LOGGER.info('执行命令失败 "%s"' % cmd)
             # 增加列计数
             count += 1
     # 创建数据库访问会话
@@ -231,9 +234,10 @@ CMD_BMP2SVG = 'potrace %s -s -i -o %s'
 # 日志
 LOGGER = logging.getLogger(__name__)
 # 获取配置
-CONFIG_JSON = config.get()
+CONFIG_JSON = get_config()
 
 if __name__ == '__main__':
     post_id = str(uuid.uuid4())
-    para_id = photo2svg('/home/yuanzhen/project/penote/tests/spring_dawn.jpg', post_id)
+    para_id = photo2svg(
+        '/home/yz/project/penote/tests/spring_dawn.jpg', post_id)
     print(para_id)

@@ -15,12 +15,12 @@ class SessionTestCase(unittest.TestCase):
 
     def test_login(self):
         json = {'user_name': 'hello', 'password': '123456'}
-        ret = session.login(json)
+        ret = session.signin(json)
         print(ret)
 
     def test_logout(self):
         id = '2854689e-ee94-4a3d-b924-3f78e75c4e97'
-        ret = session.logout(id)
+        ret = session.signout(id)
         print(ret)
 
     def test_get_user_id_by_id(self):

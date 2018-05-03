@@ -64,7 +64,7 @@ def invalidate_by_user_name(user_name):
         sess.close()
 
 
-def login(json):
+def signin(json):
     """登入"""
     if {'user_name', 'password'} != set(json.keys()):
         abort(400, error='信息不正确')
@@ -88,12 +88,12 @@ def login(json):
         sess.close()
 
 
-def logout(id):
+def signout(session_id):
     """登出"""
     sess = SESSION_MAKER()
     try:
         ret = sess.query(Session). \
-                  filter_by(id=id, is_deleted=0). \
+                  filter_by(id=session_id, is_deleted=0). \
                   update({'is_deleted': 1, 'updated': datetime.datetime.now()}) == 1
         sess.commit()
         return ret
