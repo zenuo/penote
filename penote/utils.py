@@ -11,6 +11,11 @@ from .config import get_config
 from .data import SESSION_MAKER
 from .models import Character, Paragraph, Rectangle
 
+# 将bmp文件转为svg的命令
+__CMD_BMP2SVG = 'potrace %s -s -i -o %s'
+# 日志
+LOGGER = logging.getLogger(__name__)
+
 
 def bounding_rectangles(source):
     """
@@ -203,22 +208,23 @@ def photo2svg(photo_path, post_id):
             character_slice = binary[rect.y - 1:rect.y +
                                      rect.h + 1, rect.x - 1:rect.x + rect.w + 1]
             # bmp文件路径
-            bmp_path = '%s/%s.bmp' % (CONFIG_JSON['bmp_path'], character_id)
+            bmp_path = '%s/%s.bmp' % (get_config.get('bmp_path'), character_id)
             # svg文件路径
-            svg_path = '%s/%s.svg' % (CONFIG_JSON['svg_path'], character_id)
+            svg_path = '%s/%s.svg' % (get_config.get('svg_path'), character_id)
             # 将bmp文件写入暂存
             cv2.imwrite(bmp_path, character_slice)
             # 转换bmp到svg
-            cmd = (CMD_BMP2SVG % (bmp_path, svg_path)).split()
+            cmd = (__CMD_BMP2SVG % (bmp_path, svg_path)).split()
             # 执行bmp转svg，并记录其返回码，判断其是否成功执行
             ret_code = subprocess.call(cmd)
             if ret_code != 0:
-                LOGGER.info('执行命令失败 "%s"' % cmd)
-            # 增加列计数
+                LOGGER.info('执行命令失败 "%s"', cmd)
+            # 增加计数
             count += 1
-    # 创建数据库访问会话
+    # 创建会话
     sess = SESSION_MAKER()
     try:
+        # 持久化
         sess.add(paragraph)
         sess.add_all(character_list)
         sess.commit()
@@ -229,15 +235,11 @@ def photo2svg(photo_path, post_id):
         return paragraph_id
 
 
-# 将bmp文件转为svg的命令
-CMD_BMP2SVG = 'potrace %s -s -i -o %s'
-# 日志
-LOGGER = logging.getLogger(__name__)
-# 获取配置
-CONFIG_JSON = get_config()
-
 if __name__ == '__main__':
+    """ 测试方法 """
     post_id = str(uuid.uuid4())
     para_id = photo2svg(
-        '/home/yz/project/penote/tests/spring_dawn.jpg', post_id)
-    print(para_id)
+        '/home/yz/project/penote/tests/spring_dawn.jpg',
+        post_id
+    )
+    print('测试生成的段落ID=%s' % para_id)
