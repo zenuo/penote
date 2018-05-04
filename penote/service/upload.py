@@ -1,7 +1,7 @@
+import json
 import logging
 import os
 import uuid
-import json
 
 from werkzeug.utils import secure_filename
 
@@ -12,9 +12,9 @@ LOGGER = logging.getLogger(__name__)
 __SUPPORTED_IMAGE_FILE_EXTENSION = {'jpg', 'jpeg', 'bmp'}
 
 
-def save(file):
+def save(file) -> str:
     """ 保存上传的文件,以随机UUID保存,并返回UUID """
-    # 文件路径
+    # 被支持的图像文件后缀名
     extension = __get_support_image_file_extension(file.filename)
     if not extension:
         return json.dumps({'key': None})
@@ -30,7 +30,7 @@ def save(file):
         return json.dumps({'key': file_key})
 
 
-def __get_support_image_file_extension(filename):
+def __get_support_image_file_extension(filename) -> str:
     """ 获取被支持的图像文件后缀名 """
     tokens = filename.split('.')
     if len(tokens) < 2:

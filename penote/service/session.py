@@ -2,7 +2,6 @@ import datetime
 import logging
 import uuid
 
-from flask_restful import abort
 from sqlalchemy import func
 
 from ..data import SESSION_MAKER
@@ -64,26 +63,23 @@ def invalidate_by_user_name(user_name):
         sess.close()
 
 
-def signin(json):
+def sign_in(user_name, password):
     """登入"""
-    if {'user_name', 'password'} != set(json.keys()):
-        abort(400, error='信息不正确')
-    user_name = json['user_name']
-    password = json['password']
-    # 删除原有效会话
-    invalidate_by_user_name(user_name)
     sess = SESSION_MAKER()
     try:
         if user.check_password(user_name, password):
             user_id = user.get_id_by_name(user_name)
-            s_id = str(uuid.uuid4())
-            s = Session(id=s_id, user_id=user_id)
+            # 删除原有效会话
+            invalidate_by_user_name(user_name)
+            session_id = str(uuid.uuid4())
+            s = Session(id=session_id, user_id=user_id)
             sess.add(s)
             sess.commit()
-            LOGGER.info('用户"%s"登入"%s"', user_name, s_id)
-            return {'user_id': user_id, 'session': s_id}
+            LOGGER.info('用户"%s"登入"%s"', user_name, session_id)
+            return {'user_id': user_id, 'session': session_id}
     except Exception as ex:
         LOGGER.error('登入异常', ex)
+        return None
     finally:
         sess.close()
 

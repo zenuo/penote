@@ -1,13 +1,14 @@
-""" 启动模块 """
-import logging
+""" 主模块 """
 import json
+import logging
+import os
 
 from flask import Flask, request
 from flask_restful import Api
 
-from .resources import (Categories, Characters, Paragraphs, Posts, Sessions,
-                        Users)
-from .service import post, upload
+from .resources import (Categories, CharacterList, Characters, Paragraphs,
+                        Posts, Sessions, Users)
+from .service import upload
 
 # 日志
 LOGGER = logging.getLogger(__name__)
@@ -31,14 +32,17 @@ def upload_file():
     else:
         return json.dumps({'key': None})
 
-__API.add_resource(Users, '/users')
+
+__API.add_resource(Users, '/users', '/users/<string:user_id>')
 __API.add_resource(Posts, '/posts')
 __API.add_resource(Paragraphs, '/paragraphs')
 __API.add_resource(Characters, '/characters')
+__API.add_resource(CharacterList, '/character-list')
 __API.add_resource(Categories, '/categories')
 __API.add_resource(Sessions, '/sessions', '/sessions/<string:session_id>')
 
 
 if __name__ == '__main__':
     """ 主方法 """
+    LOGGER.info('PID=%d', os.getpid())
     __APP.run(debug=False, port=5000)

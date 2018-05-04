@@ -7,18 +7,31 @@ from sqlalchemy import func
 
 from ..data import SESSION_MAKER
 from ..models import User
-from ..service import session
 
 # 日志
 LOGGER = logging.getLogger(__name__)
 
 
+def get_by_user_id(user_id):
+    """ 根据ID查询用户 """
+    sess = SESSION_MAKER()
+    try:
+        return sess.query(User). \
+            filter_by(id=user_id, is_deleted=0). \
+            first()
+    except Exception as ex:
+        LOGGER.error('异常', ex)
+        return None
+    finally:
+        sess.close()
+
+
 def create(json):
     if {'name', 'email', 'bio', 'password'} != set(json.keys()):
-        abort(400, error='信息不完全')
+        return None
     exists_same_name = get_id_by_name(json['name']) is not None
     if exists_same_name:
-        abort(400, error='存在同名用户')
+        return None
     else:
         sess = SESSION_MAKER()
         try:
@@ -31,10 +44,10 @@ def create(json):
             )
             sess.add(user)
             sess.commit()
-            return user, 201
+            return user
         except Exception as ex:
             LOGGER.error('异常', ex)
-            raise ex
+            return None
         finally:
             sess.close()
 
@@ -53,7 +66,9 @@ def get_id_by_name(name):
 def exists_by_id(id, is_deleted):
     sess = SESSION_MAKER()
     try:
-        return sess.query(func.count(User.id)).filter_by(id=id, is_deleted=is_deleted).scalar() != 0
+        return sess.query(func.count(User.id)). \
+                   filter_by(id=id, is_deleted=is_deleted) \
+                   .scalar() != 0
     except Exception as ex:
         LOGGER.error('查询是否存在指定ID用户异常', ex)
         raise ex

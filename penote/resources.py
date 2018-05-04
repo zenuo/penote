@@ -20,6 +20,14 @@ class Users(Resource):
         json = request.get_json(force=True)
         return user.create(json)
 
+    @marshal_with(user_fields)
+    def get(self, user_id):
+        session_id = request.headers.get('session')
+        if session.is_valid(session_id):
+            return user.get_by_user_id(user_id)
+        else:
+            return None
+
 
 class Posts(Resource):
     """ 文章资源类 """
@@ -44,13 +52,18 @@ class Paragraphs(Resource):
         'updated': fields.DateTime(dt_format='iso8601')
     }
 
-    @marshal_with(paragraph_fields)
+    def post(self):
+        pass
+
+
+class ParagraphList(Resource):
+    @marshal_with(Paragraphs.paragraph_fields)
     def get(self):
         # 段落ID
         paragraph_id = request.args.get('id')
         # 文章ID
         post_id = request.args.get('post')
-        return paragraph.get(paragraph_id, post=post_id)
+        return paragraph.get_list_by_post_id(paragraph_id, post=post_id)
 
 
 class Characters(Resource):
@@ -61,8 +74,18 @@ class Characters(Resource):
         'updated': fields.DateTime(dt_format='iso8601')}
 
     @marshal_with(character_fields)
+    def post(self):
+        """ 由段落ID查询字符列表 """
+        paragraph_id = request.args.get('para')
+        return character.get(paragraph_id)
+
+
+class CharacterList(Resource):
+    """ 字符列表 """
+
+    @marshal_with(Characters.character_fields)
     def get(self):
-        # 段落ID
+        """ 由段落ID查询字符列表 """
         paragraph_id = request.args.get('para')
         return character.get(paragraph_id)
 
@@ -71,10 +94,12 @@ class Sessions(Resource):
     """ 会话资源类 """
 
     def post(self):
+        """ 登入 """
         json = request.get_json(force=True)
-        return session.signin(json)
+        return session.sign_in(json.get('user_name'), json.get('password'))
 
     def delete(self, session_id):
+        """ 登出 """
         return session.signout(session_id)
 
 
