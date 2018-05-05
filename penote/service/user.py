@@ -27,6 +27,7 @@ def get_by_user_id(user_id):
 
 
 def create(json):
+    """新建用户"""
     if {'name', 'email', 'bio', 'password'} != set(json.keys()):
         return None
     exists_same_name = get_id_by_name(json['name']) is not None
@@ -53,25 +54,29 @@ def create(json):
 
 
 def get_id_by_name(name):
+    """根据名称获取ID"""
     sess = SESSION_MAKER()
     try:
-        return sess.query(User.id).filter_by(name=name, is_deleted=0).limit(1).scalar()
+        return sess.query(User.id). \
+            filter_by(name=name, is_deleted=0). \
+            limit(1). \
+            scalar()
     except Exception as ex:
         LOGGER.error('查询是否存在指定用户名用户异常', ex)
-        raise ex
+        return None
     finally:
         sess.close()
 
 
-def exists_by_id(id, is_deleted):
+def exists_by_id(user_id, is_deleted):
     sess = SESSION_MAKER()
     try:
         return sess.query(func.count(User.id)). \
-                   filter_by(id=id, is_deleted=is_deleted) \
+                   filter_by(id=user_id, is_deleted=is_deleted) \
                    .scalar() != 0
     except Exception as ex:
         LOGGER.error('查询是否存在指定ID用户异常', ex)
-        raise ex
+        return True
     finally:
         sess.close()
 
@@ -96,15 +101,14 @@ def validate(id, session):
 def check_password(user_name, password):
     sess = SESSION_MAKER()
     try:
-        user_id = sess.query(User.id). \
-            filter_by(name=user_name, password_hash=sha3_512(password.encode('utf-8')).hexdigest(), is_deleted=0). \
-            limit(1). \
-            scalar()
-        if user_id:
-            return True, user_id
-        else:
-            return False, None
+        return sess.query(func.count(User.id)). \
+                   filter_by(
+            name=user_name,
+            password_hash=sha3_512(password.encode('utf-8')).hexdigest(),
+            is_deleted=0). \
+                   scalar() == 1
     except Exception as ex:
         LOGGER.error('检查密码异常', ex)
+        return False
     finally:
         sess.close()

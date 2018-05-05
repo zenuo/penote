@@ -208,9 +208,9 @@ def photo2svg(photo_path, post_id):
             character_slice = binary[rect.y - 1:rect.y +
                                      rect.h + 1, rect.x - 1:rect.x + rect.w + 1]
             # bmp文件路径
-            bmp_path = '%s/%s.bmp' % (get_config.get('bmp_path'), character_id)
+            bmp_path = '%s/%s.bmp' % (get_config().get('bmp_path'), character_id)
             # svg文件路径
-            svg_path = '%s/%s.svg' % (get_config.get('svg_path'), character_id)
+            svg_path = '%s/%s.svg' % (get_config().get('svg_path'), character_id)
             # 将bmp文件写入暂存
             cv2.imwrite(bmp_path, character_slice)
             # 转换bmp到svg

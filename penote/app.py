@@ -33,16 +33,16 @@ def upload_file():
         return json.dumps({'key': None})
 
 
-__API.add_resource(Users, '/users', '/users/<string:user_id>')
-__API.add_resource(Posts, '/posts')
-__API.add_resource(Paragraphs, '/paragraphs')
-__API.add_resource(Characters, '/characters')
-__API.add_resource(CharacterList, '/character-list')
-__API.add_resource(Categories, '/categories')
-__API.add_resource(Sessions, '/sessions', '/sessions/<string:session_id>')
-
-
 if __name__ == '__main__':
     """ 主方法 """
     LOGGER.info('PID=%d', os.getpid())
+    # 资源类映射
+    __API.add_resource(Users, '/users', '/users/<string:user_id>')
+    __API.add_resource(Posts, '/posts', 'posts/<string:post_id>')
+    __API.add_resource(Paragraphs, '/paragraphs', '/paragraphs/<string:paragraph_id>')
+    __API.add_resource(Characters, '/characters', '/characters/<string:character_id>')
+    __API.add_resource(CharacterList, '/character-list')
+    __API.add_resource(Categories, '/categories')
+    __API.add_resource(Sessions, '/sessions', '/sessions/<string:session_id>')
+    # 启动flask实例
     __APP.run(debug=False, port=5000)

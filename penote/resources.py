@@ -71,13 +71,17 @@ class Characters(Resource):
     character_fields = {
         'id': fields.String,
         'index_number': fields.Integer,
+        'paragraph_id': fields.String,
+        'created': fields.DateTime(dt_format='iso8601'),
         'updated': fields.DateTime(dt_format='iso8601')}
 
     @marshal_with(character_fields)
-    def post(self):
-        """ 由段落ID查询字符列表 """
-        paragraph_id = request.args.get('para')
-        return character.get(paragraph_id)
+    def get(self, character_id):
+        session_id = request.headers.get('session')
+        if session.is_valid(session_id):
+            return character.get_by_character_id(character_id)
+        else:
+            return None
 
 
 class CharacterList(Resource):
@@ -86,8 +90,12 @@ class CharacterList(Resource):
     @marshal_with(Characters.character_fields)
     def get(self):
         """ 由段落ID查询字符列表 """
-        paragraph_id = request.args.get('para')
-        return character.get(paragraph_id)
+        session_id = request.headers.get('session')
+        if session.is_valid(session_id):
+            paragraph_id = request.args.get('para')
+            return character.get_list_by_para_id(paragraph_id)
+        else:
+            return []
 
 
 class Sessions(Resource):
@@ -100,7 +108,10 @@ class Sessions(Resource):
 
     def delete(self, session_id):
         """ 登出 """
-        return session.signout(session_id)
+        if session.is_valid(session_id):
+            return session.signout(session_id)
+        else:
+            return False
 
 
 class Categories(Resource):

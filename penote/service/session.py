@@ -77,6 +77,8 @@ def sign_in(user_name, password):
             sess.commit()
             LOGGER.info('用户"%s"登入"%s"', user_name, session_id)
             return {'user_id': user_id, 'session': session_id}
+        else:
+            return None
     except Exception as ex:
         LOGGER.error('登入异常', ex)
         return None
@@ -84,7 +86,7 @@ def sign_in(user_name, password):
         sess.close()
 
 
-def signout(session_id):
+def signout(session_id) -> bool:
     """登出"""
     sess = SESSION_MAKER()
     try:
@@ -95,6 +97,7 @@ def signout(session_id):
         return ret
     except Exception as ex:
         LOGGER.error('登出异常', ex)
+        return False
     finally:
         sess.close()
 
