@@ -34,13 +34,28 @@ class Posts(Resource):
     post_fields = {'id': fields.String,
                    'user_id': fields.String,
                    'title': fields.String,
+                   'created': fields.DateTime(dt_format='iso8601'),
                    'updated': fields.DateTime(dt_format='iso8601')}
 
     @marshal_with(post_fields)
     def get(self):
-        post_id = request.args.get('id')
-        user = request.args.get('user')
-        return post.get(post_id, user=user)
+        session_id = request.headers.get('session')
+        if session.is_valid(session_id):
+            post_id = request.args.get('id')
+            return post.get_by_id(post_id)
+        else:
+            return None
+
+
+class PostList(Resource):
+    @marshal_with(Posts.post_fields)
+    def get(self):
+        session_id = request.headers.get('session')
+        if session.is_valid(session_id):
+            user_id = request.args.get('user')
+            return post.get_list_by_user_id(user_id)
+        else:
+            return []
 
 
 class Paragraphs(Resource):
@@ -49,8 +64,17 @@ class Paragraphs(Resource):
         'id': fields.String,
         'post_id': fields.String,
         'index_number': fields.Integer,
+        'created': fields.DateTime(dt_format='iso8601'),
         'updated': fields.DateTime(dt_format='iso8601')
     }
+
+    @marshal_with(paragraph_fields)
+    def get(self, paragraph_id):
+        session_id = request.headers.get('session')
+        if session.is_valid(session_id):
+            return paragraph.get_by_para_id(paragraph_id)
+        else:
+            return None
 
     def post(self):
         pass
@@ -63,7 +87,7 @@ class ParagraphList(Resource):
         paragraph_id = request.args.get('id')
         # 文章ID
         post_id = request.args.get('post')
-        return paragraph.get_list_by_post_id(paragraph_id, post=post_id)
+        return paragraph.get_list_by_post_id(paragraph_id)
 
 
 class Characters(Resource):

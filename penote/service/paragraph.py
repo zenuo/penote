@@ -15,6 +15,19 @@ def get_list_by_post_id(post_id):
             filter_by(post_id=post_id, is_deleted=0). \
             all()
     except Exception as ex:
-        LOGGER.error('查询段落异常', ex)
+        LOGGER.error('根据文章ID获取段落列表', ex)
+    finally:
+        sess.close()
+
+
+def get_by_para_id(paragraph_id):
+    """根据段落ID获取"""
+    sess = SESSION_MAKER()
+    try:
+        return sess.query(Paragraph). \
+            filter_by(id=paragraph_id, is_deleted=0). \
+            first()
+    except Exception as ex:
+        LOGGER.error('根据段落ID获取', ex)
     finally:
         sess.close()

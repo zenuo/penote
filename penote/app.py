@@ -7,14 +7,13 @@ from flask import Flask, request
 from flask_restful import Api
 
 from .resources import (Categories, CharacterList, Characters, Paragraphs,
-                        Posts, Sessions, Users)
+                        Posts, Sessions, Users, PostList, ParagraphList)
 from .service import upload
 
 # 日志
 LOGGER = logging.getLogger(__name__)
 # Flask应用实例
 __APP = Flask(__name__)
-__API = Api(__APP, prefix='/api')
 
 
 @__APP.route('/api/', methods=['GET'])
@@ -35,11 +34,15 @@ def upload_file():
 
 if __name__ == '__main__':
     """ 主方法 """
+    # 记录进程号
     LOGGER.info('PID=%d', os.getpid())
     # 资源类映射
+    __API = Api(__APP, prefix='/api')
     __API.add_resource(Users, '/users', '/users/<string:user_id>')
     __API.add_resource(Posts, '/posts', 'posts/<string:post_id>')
+    __API.add_resource(PostList, '/post-list')
     __API.add_resource(Paragraphs, '/paragraphs', '/paragraphs/<string:paragraph_id>')
+    __API.add_resource(ParagraphList, 'paragraph-list')
     __API.add_resource(Characters, '/characters', '/characters/<string:character_id>')
     __API.add_resource(CharacterList, '/character-list')
     __API.add_resource(Categories, '/categories')
