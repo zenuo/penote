@@ -168,7 +168,7 @@ def photo2svg(photo_path, post_id):
     :param photo_path: 照片文件的路径
     :param post_id: 文章ID
     :param sess: 会话实例
-    :return: None
+    :return: 段落ID
     """
     # 灰度图像
     grayscale: np.ndarray = cv2.imread(photo_path, cv2.IMREAD_GRAYSCALE)

@@ -1,8 +1,6 @@
 import logging
 import uuid
 
-from flask_restful import abort
-
 from ..data import SESSION_MAKER
 from ..models import Category
 from ..service import session
@@ -27,10 +25,10 @@ def get_by_user_id_and_name(user_id, name):
 def create(json):
     """新建分类"""
     if {'session', 'name'} != set(json.keys()):
-        abort(400, error='信息不正确')
+        return None
     session_id = json['session']
     if not session.is_valid(session_id):
-        abort(400, error='用户未登录')
+        return None
     name = json['name']
     user_id = session.get_user_id_by_id(session_id)
     category_in_db = get_by_user_id_and_name(user_id, name)
@@ -51,11 +49,11 @@ def create(json):
             sess.close()
 
 
-def get(session_id):
-    """查询所有分类"""
+def get_list_by_session_id(session_id):
+    """根据会话ID查询分类"""
     # 检查用户是否登录
     if not session.is_valid(session_id):
-        abort(400, error='用户未登录')
+        return []
     # 获取用户ID
     user_id = session.get_user_id_by_id(session_id)
     # 获取会话
@@ -65,6 +63,7 @@ def get(session_id):
             filter_by(user_id=user_id, is_deleted=0). \
             all()
     except Exception as ex:
-        LOGGER.error('查询分类异常', ex)
+        LOGGER.error('根据会话ID查询分类', ex)
+        return []
     finally:
         sess.close()

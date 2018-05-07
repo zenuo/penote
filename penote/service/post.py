@@ -1,5 +1,6 @@
 """ 文章逻辑 """
 import logging
+import uuid
 
 from ..config import get_config
 from ..data import SESSION_MAKER
@@ -33,5 +34,25 @@ def get_list_by_user_id(user_id):
     except Exception as ex:
         LOGGER.error('根据用户ID获取列表', ex)
         return []
+    finally:
+        sess.close()
+
+
+def create(json, user_id):
+    """创建"""
+    sess = SESSION_MAKER()
+    try:
+        post_id = str(uuid.uuid4())
+        new_post = Post(
+            id=post_id,
+            user_id=user_id,
+            title=json.get('title')
+        )
+        sess.add(new_post)
+        sess.commit()
+        LOGGER.info('创建文章%s', post_id)
+        return new_post
+    except Exception as ex:
+        LOGGER.error('创建文章%s', post_id, ex)
     finally:
         sess.close()

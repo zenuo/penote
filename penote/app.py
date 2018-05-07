@@ -1,5 +1,4 @@
 """ 主模块 """
-import json
 import logging
 import os
 
@@ -8,7 +7,8 @@ from flask_restful import Api
 
 from .resources import (Categories, CharacterList, Characters, Paragraphs,
                         Posts, Sessions, Users, PostList, ParagraphList)
-from .service import upload
+from .service import upload, session
+from .utils import photo2svg
 
 # 日志
 LOGGER = logging.getLogger(__name__)
@@ -24,12 +24,19 @@ def hello():
 
 @__APP.route('/api/uploads', methods=['POST'])
 def upload_file():
-    """ 文件上传 """
+    """ 上传文件, 返回由文件创建的段落ID """
     if request.method == 'POST':
-        file = request.files['file']
-        return upload.save(file)
-    else:
-        return json.dumps({'key': None})
+        # 会话ID
+        session_id = request.headers.get('session')
+        if session.is_valid(session_id):
+            # 文件实例
+            file = request.files.get('file')
+            # 文章ID
+            post_id = request.headers.get('post')
+            # 段落照片源文件
+            paragraph_file_path = upload.save(file)
+            return photo2svg(paragraph_file_path, post_id)
+    return ''
 
 
 if __name__ == '__main__':

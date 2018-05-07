@@ -39,23 +39,27 @@ class Posts(Resource):
 
     @marshal_with(post_fields)
     def get(self):
+        # 此处不检验会话
+        post_id = request.args.get('id')
+        return post.get_by_id(post_id)
+
+    @marshal_with(post_fields)
+    def post(self):
         session_id = request.headers.get('session')
-        if session.is_valid(session_id):
-            post_id = request.args.get('id')
-            return post.get_by_id(post_id)
-        else:
-            return None
+        user_id = session.get_user_id_by_id(session_id)
+        if user_id:
+            return post.create(
+                request.get_json(force=True),
+                user_id
+            )
 
 
 class PostList(Resource):
     @marshal_with(Posts.post_fields)
     def get(self):
-        session_id = request.headers.get('session')
-        if session.is_valid(session_id):
-            user_id = request.args.get('user')
-            return post.get_list_by_user_id(user_id)
-        else:
-            return []
+        # 此处不检验会话
+        user_id = request.args.get('user')
+        return post.get_list_by_user_id(user_id)
 
 
 class Paragraphs(Resource):
@@ -70,11 +74,8 @@ class Paragraphs(Resource):
 
     @marshal_with(paragraph_fields)
     def get(self, paragraph_id):
-        session_id = request.headers.get('session')
-        if session.is_valid(session_id):
-            return paragraph.get_by_para_id(paragraph_id)
-        else:
-            return None
+        # 此处不检验会话
+        return paragraph.get_by_para_id(paragraph_id)
 
     def post(self):
         pass
@@ -83,11 +84,9 @@ class Paragraphs(Resource):
 class ParagraphList(Resource):
     @marshal_with(Paragraphs.paragraph_fields)
     def get(self):
-        # 段落ID
-        paragraph_id = request.args.get('id')
         # 文章ID
         post_id = request.args.get('post')
-        return paragraph.get_list_by_post_id(paragraph_id)
+        return paragraph.get_list_by_post_id(post_id)
 
 
 class Characters(Resource):
@@ -101,11 +100,7 @@ class Characters(Resource):
 
     @marshal_with(character_fields)
     def get(self, character_id):
-        session_id = request.headers.get('session')
-        if session.is_valid(session_id):
-            return character.get_by_character_id(character_id)
-        else:
-            return None
+        return character.get_by_character_id(character_id)
 
 
 class CharacterList(Resource):
@@ -114,12 +109,8 @@ class CharacterList(Resource):
     @marshal_with(Characters.character_fields)
     def get(self):
         """ 由段落ID查询字符列表 """
-        session_id = request.headers.get('session')
-        if session.is_valid(session_id):
-            paragraph_id = request.args.get('para')
-            return character.get_list_by_para_id(paragraph_id)
-        else:
-            return []
+        paragraph_id = request.args.get('para')
+        return character.get_list_by_para_id(paragraph_id)
 
 
 class Sessions(Resource):
@@ -148,7 +139,7 @@ class Categories(Resource):
     @marshal_with(category_fileds)
     def get(self):
         session_id = request.headers.get('session')
-        return category.get(session_id)
+        return category.get_list_by_session_id(session_id)
 
     @marshal_with(category_fileds)
     def post(self):

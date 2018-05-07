@@ -13,6 +13,7 @@ def get_list_by_post_id(post_id):
     try:
         return sess.query(Paragraph). \
             filter_by(post_id=post_id, is_deleted=0). \
+            order_by(Paragraph.created). \
             all()
     except Exception as ex:
         LOGGER.error('根据文章ID获取段落列表', ex)
