@@ -38,9 +38,8 @@ class Posts(Resource):
                    'updated': fields.DateTime(dt_format='iso8601')}
 
     @marshal_with(post_fields)
-    def get(self):
+    def get(self, post_id):
         # 此处不检验会话
-        post_id = request.args.get('id')
         return post.get_by_id(post_id)
 
     @marshal_with(post_fields)
@@ -50,9 +49,13 @@ class Posts(Resource):
         if user_id:
             return post.create(
                 request.get_json(force=True),
-                user_id
-            )
+                user_id)
 
+    def delete(self, post_id):
+        session_id = request.headers.get('session')
+        if session.is_valid(session_id):
+            return post.delete(post_id)
+        return False
 
 class PostList(Resource):
     @marshal_with(Posts.post_fields)
@@ -77,8 +80,12 @@ class Paragraphs(Resource):
         # 此处不检验会话
         return paragraph.get_by_para_id(paragraph_id)
 
-    def post(self):
-        pass
+    def delete(self, paragraph_id):
+        session_id = request.headers.get('session')
+        if session.is_valid(session_id):
+            return paragraph.delete(paragraph_id)
+        return False
+
 
 
 class ParagraphList(Resource):

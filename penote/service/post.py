@@ -16,7 +16,7 @@ def get_by_id(id):
     try:
         return sess.query(Post). \
             filter_by(id=id, is_deleted=0). \
-            all()
+            first()
     except Exception as ex:
         LOGGER.error('根据文章ID获取', ex)
         return None
@@ -54,5 +54,22 @@ def create(json, user_id):
         return new_post
     except Exception as ex:
         LOGGER.error('创建文章%s', post_id, ex)
+    finally:
+        sess.close()
+
+
+def delete(post_id):
+    """删除文章"""
+    sess = SESSION_MAKER()
+    try:
+        LOGGER.info('删除文章')
+        sess.query(Post). \
+            filter_by(id=post_id). \
+            delete(synchronize_session=False)
+        sess.commit()
+        return True
+    except Exception as ex:
+        LOGGER.error('删除文章', ex)
+        return False
     finally:
         sess.close()

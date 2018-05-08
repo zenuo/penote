@@ -32,3 +32,20 @@ def get_by_para_id(paragraph_id):
         LOGGER.error('根据段落ID获取', ex)
     finally:
         sess.close()
+
+
+def delete(paragraph_id):
+    """删除文章"""
+    sess = SESSION_MAKER()
+    try:
+        LOGGER.info('删除段落')
+        sess.query(Paragraph). \
+            filter_by(id=paragraph_id). \
+            delete(synchronize_session=False)
+        sess.commit()
+        return True
+    except Exception as ex:
+        LOGGER.error('删除段落', ex)
+        return False
+    finally:
+        sess.close()

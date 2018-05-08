@@ -46,10 +46,10 @@ if __name__ == '__main__':
     # 资源类映射
     __API = Api(__APP, prefix='/api')
     __API.add_resource(Users, '/users', '/users/<string:user_id>')
-    __API.add_resource(Posts, '/posts', 'posts/<string:post_id>')
+    __API.add_resource(Posts, '/posts', '/posts/<string:post_id>')
     __API.add_resource(PostList, '/post-list')
     __API.add_resource(Paragraphs, '/paragraphs', '/paragraphs/<string:paragraph_id>')
-    __API.add_resource(ParagraphList, 'paragraph-list')
+    __API.add_resource(ParagraphList, '/paragraph-list')
     __API.add_resource(Characters, '/characters', '/characters/<string:character_id>')
     __API.add_resource(CharacterList, '/character-list')
     __API.add_resource(Categories, '/categories')
