@@ -73,3 +73,33 @@ def delete(post_id):
         return False
     finally:
         sess.close()
+
+
+def get_all():
+    """查询所有"""
+    sess = SESSION_MAKER()
+    try:
+        return sess.query(Post). \
+            filter_by(is_deleted=0). \
+            order_by(Post.updated.desc()). \
+            all()
+    except Exception as ex:
+        LOGGER.error('查询所有', ex)
+        return []
+    finally:
+        sess.close()
+
+
+def get_list_by_title(key):
+    """根据标题查找"""
+    sess = SESSION_MAKER()
+    try:
+        return sess.query(Post). \
+            filter(Post.is_deleted == 0, Post.title.like('%%%s%%' % (key))). \
+            order_by(Post.updated.desc()). \
+            all()
+    except Exception as ex:
+        LOGGER.error('根据标题查找', ex)
+        return []
+    finally:
+        sess.close()

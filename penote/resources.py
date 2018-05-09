@@ -57,12 +57,19 @@ class Posts(Resource):
             return post.delete(post_id)
         return False
 
+
 class PostList(Resource):
     @marshal_with(Posts.post_fields)
     def get(self):
         # 此处不检验会话
+        if len(request.args) == 0:
+            return post.get_all()
         user_id = request.args.get('user')
-        return post.get_list_by_user_id(user_id)
+        if user_id:
+            return post.get_list_by_user_id(user_id)
+        key = request.args.get('key')
+        if key:
+            return post.get_list_by_title(key)
 
 
 class Paragraphs(Resource):
@@ -85,7 +92,6 @@ class Paragraphs(Resource):
         if session.is_valid(session_id):
             return paragraph.delete(paragraph_id)
         return False
-
 
 
 class ParagraphList(Resource):
