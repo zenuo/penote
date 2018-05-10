@@ -1,4 +1,5 @@
 """ 文章逻辑 """
+import datetime
 import logging
 import uuid
 
@@ -65,7 +66,7 @@ def delete(post_id):
         LOGGER.info('删除文章')
         sess.query(Post). \
             filter_by(id=post_id). \
-            delete(synchronize_session=False)
+            update({'is_deleted': 1, 'updated': datetime.datetime.now()})
         sess.commit()
         return True
     except Exception as ex:
