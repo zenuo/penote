@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 from ..data import SESSION_MAKER
@@ -31,5 +32,20 @@ def get_by_character_id(character_id):
     except Exception as ex:
         LOGGER.error('根据字符ID获取字符信息', ex)
         return None
+    finally:
+        sess.close()
+
+
+def delete(character_id):
+    sess = SESSION_MAKER()
+    try:
+        sess.query(Character). \
+            filter_by(id=character_id). \
+            update({'is_deleted': 1, 'updated': datetime.datetime.now()})
+        sess.commit()
+        return True
+    except Exception as ex:
+        LOGGER.error('删除', ex)
+        return False
     finally:
         sess.close()

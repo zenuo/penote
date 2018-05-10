@@ -115,6 +115,9 @@ class Characters(Resource):
     def get(self, character_id):
         return character.get_by_character_id(character_id)
 
+    def delete(self, character_id):
+        return character.delete(character_id)
+
 
 class CharacterList(Resource):
     """ 字符列表 """

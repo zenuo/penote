@@ -1,3 +1,4 @@
+import datetime
 import logging
 
 from ..data import SESSION_MAKER
@@ -41,7 +42,7 @@ def delete(paragraph_id):
         LOGGER.info('删除段落')
         sess.query(Paragraph). \
             filter_by(id=paragraph_id). \
-            delete(synchronize_session=False)
+            update({'is_deleted': 1, 'updated': datetime.datetime.now()})
         sess.commit()
         return True
     except Exception as ex:
