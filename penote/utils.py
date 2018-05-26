@@ -26,26 +26,23 @@ def bounding_rectangles(source):
     # 反相
     inverted_grayscale = 255 - source
     # 二值化
-    _, binary = cv2.threshold(inverted_grayscale, 180, 255, cv2.THRESH_OTSU)
+    _, binary = cv2.threshold(inverted_grayscale, 0, 255, cv2.THRESH_OTSU)
     # 彩色的二值化图像，便于绘制有色矩形
-    # binary_rgb = np.zeros(source.shape)
+    binary_rgb = cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
     # 所有轮廓
     _, all_contours, _ = cv2.findContours(
         binary, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     # 合并重叠的矩形后返回列表
     rectangles = combine_overlapping_rectangles(
         list(Rectangle(*cv2.boundingRect(c), c) for c in all_contours))
-    # for r in rectangles:
-    #     绘制边界矩形
-    #     cv2.rectangle(binary_rgb, (r.x, r.y), (r.x + r.w, r.y + r.h), (0, 0, 255), 1)
-    #     简化近似轮廓
-    #     smoothed_contours = list(cv2.approxPolyDP(c, 0.005 * cv2.arcLength(c, True), True) for c in r.cl)
-    #     print("未处理的轮廓点数：%d\n平滑处理后的轮廓点数：%d" % (count_points(r.cl), count_points(smoothed_contours)))
-    #     绘制轮廓
-    # cv2.drawContours(binary_rgb, r.cl, -1, (255, 255, 255), 1)
-    #     cv2.putText(binary_rgb, str(r), (r.x, r.y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0), 1)
-    # cv2.imwrite("../tests/field_with_contours.jpg", binary_rgb)
-    return binary, rectangles
+    for r in rectangles:
+        # 绘制边界矩形
+        cv2.rectangle(binary_rgb, (r.x, r.y), (r.x + r.w, r.y + r.h), (255, 255, 255), 1)
+        # 绘制轮廓
+        # cv2.drawContours(binary_rgb, r.cl, -1, (255, 255, 255), 1)
+        # cv2.putText(binary_rgb, str(r), (r.x, r.y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (255, 255, 255), 1)
+    # cv2.imwrite("../tests/rectangles.jpg", binary_rgb)
+    return binary, rectangles, binary_rgb
 
 
 def combine_overlapping_rectangles(source_list):
@@ -103,9 +100,9 @@ def horizontal_blank_lines(binary):
     # 高度
     height = binary.shape[0]
     # 结果列表
-    result_list = list()
+    result_list = []
     # 暂存列表
-    temp_list = list()
+    temp_list = []
     # 遍历每一行像素
     for i in range(height):
         # 取一行像素
@@ -137,9 +134,9 @@ def rowing(rectangles, lines):
     """
     source_queue = deque(rectangles)
     # 结果列表
-    result_list = list()
+    result_list = []
     # 暂存列表
-    temp_list = list()
+    temp_list = []
     # 遍历矩形列表
     for l in lines:
         while source_queue:
@@ -147,6 +144,7 @@ def rowing(rectangles, lines):
             if r.y + r.h < l:
                 temp_list.append(r)
             elif temp_list:
+                temp_list.sort(key=lambda a: a.x)
                 result_list.append(temp_list.copy())
                 temp_list.clear()
                 temp_list.append(r)
@@ -155,9 +153,6 @@ def rowing(rectangles, lines):
                 source_queue.appendleft(r)
     # 将暂存列表加入结果列表
     result_list.append(temp_list)
-    # 遍历结果列表，以x位置排序
-    for l in result_list:
-        l.sort(key=lambda a: a.x)
     # 返回
     return result_list
 
@@ -171,13 +166,17 @@ def photo2svg(photo_path, post_id):
     :return: 段落ID
     """
     # 灰度图像
-    grayscale: np.ndarray = cv2.imread(photo_path, cv2.IMREAD_GRAYSCALE)
+    grayscale: np.ndarray = cv2.imread(photo_path, cv2.IMREAD_REDUCED_GRAYSCALE_2)
     # 降噪
     denoising: np.ndarray = cv2.fastNlMeansDenoising(grayscale)
     # 获取二值化图像和边界矩形列表
-    binary, rectangles = bounding_rectangles(denoising)
+    binary, rectangles, binary_rgb = bounding_rectangles(denoising)
     # 水平空白行列表
     blank_lines = horizontal_blank_lines(binary)
+    # 绘制分行
+    # for line in blank_lines:
+    #     cv2.line(binary_rgb, (0, line), (binary_rgb.shape[0], line), (255,255,255), 1, cv2.LINE_4)
+    # cv2.imwrite('../tests/line.jpg', binary_rgb)
     # 分行
     rows = rowing(rectangles, blank_lines)
     # 段落ID
@@ -195,6 +194,8 @@ def photo2svg(photo_path, post_id):
     # 遍历
     for row in rows:
         for rect in row:
+            # 绘制字符顺序号
+            cv2.putText(binary_rgb, str(count), (rect.x, rect.y), cv2.FONT_HERSHEY_COMPLEX_SMALL, 2, (255, 255, 255), 1)
             # 文字ID
             character_id = str(uuid.uuid4())
             # 文字实例
@@ -221,6 +222,7 @@ def photo2svg(photo_path, post_id):
                 LOGGER.info('执行命令失败 "%s"', cmd)
             # 增加计数
             count += 1
+    cv2.imwrite('../tests/character_order.jpg', binary_rgb)
     # 创建会话
     sess = SESSION_MAKER()
     try:
